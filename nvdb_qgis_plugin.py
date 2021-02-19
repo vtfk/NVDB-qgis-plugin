@@ -185,6 +185,11 @@ class NvdbQgisPlugin:
                 action)
             self.iface.removeToolBarIcon(action)
 
+    def comboBox_itemChanged(self, index):
+        items = getObjInCat(index)
+        self.dlg.comboBox_choices.clear()
+        self.dlg.comboBox_choices.addItems(items)
+
     def run(self):
         """Run method that performs all the real work"""
 
@@ -197,15 +202,16 @@ class NvdbQgisPlugin:
         self.dlg.comboBox.clear()
         # Populate the comboBox with names of all the loaded layers
         self.dlg.comboBox.addItems(sortCategories())
-
-
-
         # show the dialog
         self.dlg.show()
+
+        self.dlg.comboBox.currentIndexChanged[str].connect(self.comboBox_itemChanged)
         # Run the dialog event loop
         result = self.dlg.exec_()
         # See if OK was pressed
         if result:
-            kum = nvdbFagdata(7)
-            kum.filter({'fylke': 38, 'vegsystemreferanse': ['F']})
-            nvdbsok2qgis(kum, lagnavn='Gjerde')
+            selected_item = str(self.dlg.comboBox_choices.currentText())
+            item_id = getID(selected_item)
+            item = nvdbFagdata(item_id)
+            item.filter({'fylke': 38, 'vegsystemreferanse': ['F']})
+            nvdbsok2qgis(item, lagnavn=selected_item)

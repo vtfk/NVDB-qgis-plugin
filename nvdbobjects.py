@@ -7,6 +7,9 @@ def getNvdb():
     return json.loads(response.text)
 
 
+"""Henter navn på alle vegobjektene"""
+
+
 def getNames():
     nameList = []
 
@@ -16,6 +19,10 @@ def getNames():
 
     return nameList
 
+
+"""Henter kategorier"""
+
+
 def getCategories():
     categoryList = []
 
@@ -24,6 +31,10 @@ def getCategories():
         categoryList.append(cat)
 
     return categoryList
+
+
+"""Sorterer kategoriene etter primærkategorier"""
+
 
 def sortCategories():
     catList = getCategories()
@@ -44,5 +55,45 @@ def sortCategories():
             except IndexError:
                 print('no data')
 
-
     return sorted(sortedCatList)
+
+
+def getObjects():
+    objList = []
+    names = getNames()
+    categories = getCategories()
+    for i in range(len(categories)):
+        for u in range(len(categories[i])):
+            name = names[i]
+            try:
+                primatyCat = categories[i][u]['primærkategori']
+                if primatyCat:
+                    catName = categories[i][u]['navn']
+                    currentObj = [name, catName]
+                    objList.append(currentObj)
+                else:
+                    pass
+            except IndexError:
+                print('no data')
+
+    return sorted(objList)
+
+
+def getObjInCat(cat):
+    objList = []
+    for obj in getObjects():
+        if cat == obj[1]:
+            objList.append(obj[0])
+
+    return objList
+
+
+def getID(selected_item):
+    item_id = 0
+    for obj in getNvdb():
+        if selected_item == obj['navn']:
+            item_id = obj['id']
+        else:
+            pass
+
+    return item_id
