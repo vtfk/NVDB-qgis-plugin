@@ -33,7 +33,7 @@ def sortCategories():
         try:
             primatyCat = catList[i][0]
             if primatyCat:
-                name = catList[i]
+                name = catList[i][-1]
                 print(name)
                 if name in sortedCatList:
                     pass
