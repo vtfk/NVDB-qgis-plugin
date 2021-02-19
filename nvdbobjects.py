@@ -30,19 +30,19 @@ def sortCategories():
     sortedCatList = []
 
     for i in range(len(catList)):
-        try:
-            primatyCat = catList[i][0]
-            if primatyCat:
-                name = catList[i][-1]
-                print(name)
-                if name in sortedCatList:
-                    pass
+        for u in range(len(catList[i])):
+            try:
+                primatyCat = catList[i][u]['primærkategori']
+                if primatyCat:
+                    name = catList[i][u]['navn']
+                    if name in sortedCatList:
+                        pass
+                    else:
+                        sortedCatList.append(name)
                 else:
-                    sortedCatList.append(name)
-            else:
-                pass
-        except IndexError:
-            print('no data')
+                    pass
+            except IndexError:
+                print('no data')
 
 
-    return sortedCatList
+    return sorted(sortedCatList)

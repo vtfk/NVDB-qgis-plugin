@@ -196,13 +196,9 @@ class NvdbQgisPlugin:
         # Clear the contents of the comboBox from previous runs
         self.dlg.comboBox.clear()
         # Populate the comboBox with names of all the loaded layers
-        #
+        self.dlg.comboBox.addItems(sortCategories())
 
 
-
-        sortedList = sortCategories()
-
-        print(sortedList)
 
         # show the dialog
         self.dlg.show()
