@@ -23,12 +23,13 @@
 """
 import os.path
 # NVDB
+from PyQt5.QtWidgets import QListWidgetItem
 from nvdbapiv3 import nvdbFagdata
 from nvdbapiV3qgis3 import nvdbsok2qgis
 from .nvdbobjects import *
 
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
-from qgis.PyQt.QtGui import QIcon
+from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import QAction
 
 # Initialize Qt resources from file resources.py
@@ -190,11 +191,22 @@ class NvdbQgisPlugin:
         self.dlg.comboBox_choices.clear()
         self.dlg.comboBox_choices.addItems(items)
 
-    def run(self):
-        """Run method that performs all the real work"""
+    def addItem(self):
+        text = str(self.dlg.comboBox_choices.currentText())
+        item = QListWidgetItem(text)
+        self.dlg.listWidget.addItem(item)
 
-        # Create the dialog with elements (after translation) and keep reference
-        # Only create GUI ONCE in callback, so that it will only load when the plugin is started
+    def removeItem(self):
+        current_item = self.dlg.listWidget.currentItem().text()
+        if not current_item:
+            pass
+        else:
+            items_list = self.dlg.listWidget.findItems(current_item, QtCore.Qt.MatchExactly)
+            for item in items_list:
+                r = self.dlg.listWidget.row(item)
+                self.dlg.listWidget.takeItem(r)
+
+    def run(self):
         if self.first_start:
             self.first_start = False
 
@@ -202,16 +214,20 @@ class NvdbQgisPlugin:
         self.dlg.comboBox.clear()
         # Populate the comboBox with names of all the loaded layers
         self.dlg.comboBox.addItems(sortCategories())
-        # show the dialog
+        # Show the dialog
         self.dlg.show()
-
         self.dlg.comboBox.currentIndexChanged[str].connect(self.comboBox_itemChanged)
+        self.dlg.addButton.clicked.connect(self.addItem)
+        self.dlg.removeButton.clicked.connect(self.removeItem)
         # Run the dialog event loop
         result = self.dlg.exec_()
         # See if OK was pressed
         if result:
-            selected_item = str(self.dlg.comboBox_choices.currentText())
-            item_id = getID(selected_item)
-            item = nvdbFagdata(item_id)
-            item.filter({'fylke': 38, 'vegsystemreferanse': ['F']})
-            nvdbsok2qgis(item, lagnavn=selected_item)
+            item_list = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
+            for item in item_list:
+                item_text = item
+                item_id = getID(item)
+                item = nvdbFagdata(item_id)
+                item.filter({'fylke': 38, 'vegsystemreferanse': ['F']})
+                nvdbsok2qgis(item, lagnavn=item_text)
+            self.dlg.listWidget.clear()
