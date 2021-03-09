@@ -27,6 +27,7 @@ from PyQt5.QtWidgets import QListWidgetItem
 from nvdbapiv3 import nvdbFagdata
 from nvdbapiV3qgis3 import nvdbsok2qgis
 from .nvdbobjects import *
+from .nvdbareas import *
 
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import *
@@ -78,16 +79,6 @@ class NvdbQgisPlugin:
 
     # noinspection PyMethodMayBeStatic
     def tr(self, message):
-        """Get the translation for a string using Qt translation API.
-
-        We implement this ourselves since we do not inherit QObject.
-
-        :param message: String for translation.
-        :type message: str, QString
-
-        :returns: Translated version of message.
-        :rtype: QString
-        """
         # noinspection PyTypeChecker,PyArgumentList,PyCallByClass
         return QCoreApplication.translate('NvdbQgisPlugin', message)
 
@@ -102,44 +93,6 @@ class NvdbQgisPlugin:
             status_tip=None,
             whats_this=None,
             parent=None):
-        """Add a toolbar icon to the toolbar.
-
-        :param icon_path: Path to the icon for this action. Can be a resource
-            path (e.g. ':/plugins/foo/bar.png') or a normal file system path.
-        :type icon_path: str
-
-        :param text: Text that should be shown in menu items for this action.
-        :type text: str
-
-        :param callback: Function to be called when the action is triggered.
-        :type callback: function
-
-        :param enabled_flag: A flag indicating if the action should be enabled
-            by default. Defaults to True.
-        :type enabled_flag: bool
-
-        :param add_to_menu: Flag indicating whether the action should also
-            be added to the menu. Defaults to True.
-        :type add_to_menu: bool
-
-        :param add_to_toolbar: Flag indicating whether the action should also
-            be added to the toolbar. Defaults to True.
-        :type add_to_toolbar: bool
-
-        :param status_tip: Optional text to show in a popup when mouse pointer
-            hovers over the action.
-        :type status_tip: str
-
-        :param parent: Parent widget for the new action. Defaults None.
-        :type parent: QWidget
-
-        :param whats_this: Optional text to show in the status bar when the
-            mouse pointer hovers over the action.
-
-        :returns: The action that was created. Note that the action is also
-            added to self.actions list.
-        :rtype: QAction
-        """
 
         icon = QIcon(icon_path)
         action = QAction(icon, text, parent)
@@ -162,6 +115,16 @@ class NvdbQgisPlugin:
                 action)
 
         self.actions.append(action)
+        self.dlg.comboBox.currentIndexChanged[str].connect(self.comboBox_itemChanged)
+        self.dlg.addButton.clicked.connect(self.addItem)
+        self.dlg.removeButton.clicked.connect(self.removeItem)
+        self.dlg.clearButton.clicked.connect(self.clearSelection)
+        self.dlg.individCheck.toggled.connect(self.individualSelected)
+        self.dlg.kommuneCheck.toggled.connect(self.kommuneSelected)
+        self.dlg.kontraktCheck.toggled.connect(self.kontraktSelected)
+        self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKommune)
+        self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKontrakt)
+        getAllData()
 
         return action
 
@@ -186,43 +149,88 @@ class NvdbQgisPlugin:
                 action)
             self.iface.removeToolBarIcon(action)
 
+    def individualSelected(self):
+        if self.dlg.individCheck.isChecked():
+            self.dlg.kommuneCheck.setEnabled(False)
+            self.dlg.kontraktCheck.setEnabled(False)
+            self.dlg.fylkeBox.setEnabled(False)
+            self.dlg.kommuneBox.setEnabled(False)
+            self.dlg.kontraktBox.setEnabled(False)
+        else:
+            self.dlg.kontraktCheck.setEnabled(True)
+            self.dlg.kommuneCheck.setEnabled(True)
+            self.dlg.fylkeBox.setEnabled(True)
+
+    def kommuneSelected(self):
+        if self.dlg.kommuneCheck.isChecked():
+            self.dlg.kommuneBox.setEnabled(True)
+            self.dlg.individCheck.setEnabled(False)
+            self.dlg.kontraktCheck.setEnabled(False)
+            self.dlg.kontraktBox.setEnabled(False)
+        else:
+            self.dlg.kommuneBox.setEnabled(False)
+            self.dlg.individCheck.setEnabled(True)
+            self.dlg.kontraktCheck.setEnabled(True)
+
+    def kontraktSelected(self):
+        if self.dlg.kontraktCheck.isChecked():
+            self.dlg.kontraktBox.setEnabled(True)
+            self.dlg.individCheck.setEnabled(False)
+            self.dlg.kommuneCheck.setEnabled(False)
+            self.dlg.kommuneBox.setEnabled(False)
+        else:
+            self.dlg.kontraktBox.setEnabled(False)
+            self.dlg.individCheck.setEnabled(True)
+            self.dlg.kommuneCheck.setEnabled(True)
+
     def comboBox_itemChanged(self, index):
         items = getObjInCat(index)
-        self.dlg.comboBox_choices.clear()
-        self.dlg.comboBox_choices.addItems(items)
+        self.dlg.plainTextEdit.appendPlainText("Kategori: " + index)
+        self.dlg.listWidgetObjects.clear()
+        self.dlg.listWidgetObjects.addItems(items)
 
     def addItem(self):
-        text = str(self.dlg.comboBox_choices.currentText())
-        item = QListWidgetItem(text)
-        self.dlg.listWidget.addItem(item)
+        all_items = self.dlg.listWidgetObjects.selectedItems()
+        for i in range(len(all_items)):
+            self.dlg.listWidget.addItem(all_items[i].text())
+            self.dlg.plainTextEdit.appendPlainText("Lagt til " + all_items[i].text())
+        self.dlg.listWidgetObjects.clearSelection()
 
     def removeItem(self):
-        current_item = self.dlg.listWidget.currentItem().text()
-        if not current_item:
+        selected_items = self.dlg.listWidget.selectedItems()
+        if not selected_items:
             pass
         else:
-            items_list = self.dlg.listWidget.findItems(current_item, QtCore.Qt.MatchExactly)
-            for item in items_list:
-                r = self.dlg.listWidget.row(item)
+            for i in range(len(selected_items)):
+                r = self.dlg.listWidget.row(selected_items[i])
+                self.dlg.plainTextEdit.appendPlainText("Fjernet " + selected_items[i].text())
                 self.dlg.listWidget.takeItem(r)
+
+    def clearSelection(self):
+        self.dlg.listWidgetObjects.clearSelection()
+
+    def getKommune(self, index):
+        self.dlg.plainTextEdit.appendPlainText("Fylke: " + index)
+        self.dlg.kommuneBox.clear()
+        self.dlg.kommuneBox.addItems(getKommuneNavn(index))
+
+    def getKontrakt(self, index):
+        self.dlg.kontraktBox.clear()
+        self.dlg.kontraktBox.addItems(getKontraktNavn(index))
 
     def run(self):
         if self.first_start:
             self.first_start = False
 
-        # Clear the contents of the comboBox from previous runs
         self.dlg.comboBox.clear()
-        # Populate the comboBox with names of all the loaded layers
         self.dlg.comboBox.addItems(sortCategories())
-        # Show the dialog
+        self.dlg.fylkeBox.addItems(getFylkeNavn())
+        self.dlg.kommuneBox.setEnabled(False)
+        self.dlg.kontraktBox.setEnabled(False)
         self.dlg.show()
-        self.dlg.comboBox.currentIndexChanged[str].connect(self.comboBox_itemChanged)
-        self.dlg.addButton.clicked.connect(self.addItem)
-        self.dlg.removeButton.clicked.connect(self.removeItem)
-        # Run the dialog event loop
         result = self.dlg.exec_()
-        # See if OK was pressed
         if result:
+            """
             item_list = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
             for item in item_list:
                 item_text = item
@@ -231,3 +239,4 @@ class NvdbQgisPlugin:
                 item.filter({'fylke': 38, 'vegsystemreferanse': ['F']})
                 nvdbsok2qgis(item, lagnavn=item_text)
             self.dlg.listWidget.clear()
+            """
