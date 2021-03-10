@@ -95,6 +95,24 @@ def getKontraktNavn(index):
     return sorted(kontraktList)
 
 
+def getFylkeID(index):
+    fylker = returnFylkeData()
+    fylkeID = None
+    for i in fylker:
+        if i['navn'] == index:
+            fylkeID = i['nummer']
+    return fylkeID
+
+
+def getKommuneID(index):
+    kommuner = returnKommuneData()
+    kommuneID = None
+    for i in kommuner:
+        if i['navn'] == index:
+            kommuneID = i['nummer']
+    return kommuneID
+
+
 def returnFylkeData():
     return nvdb.getFylkeData()
 

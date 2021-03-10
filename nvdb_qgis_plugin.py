@@ -44,7 +44,8 @@ class NvdbQgisPlugin:
     """QGIS Plugin Implementation."""
 
     def __init__(self, iface):
-        """Constructor.
+        """
+        Constructor.
 
         :param iface: An interface instance that will be passed to this class
             which provides the hook by which you can manipulate the QGIS
@@ -230,13 +231,18 @@ class NvdbQgisPlugin:
         self.dlg.show()
         result = self.dlg.exec_()
         if result:
-            """
-            item_list = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
-            for item in item_list:
+            objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
+            for item in objList:
                 item_text = item
                 item_id = getID(item)
                 item = nvdbFagdata(item_id)
-                item.filter({'fylke': 38, 'vegsystemreferanse': ['F']})
+                if self.dlg.kommuneCheck.isChecked():
+                    kommuneID = getKommuneID(str(self.dlg.kommuneBox.currentText()))
+                    item.filter({'kommune': kommuneID})
+                elif self.dlg.kontraktCheck.isChecked():
+                    item.filter({'kontraktsomrade': str(self.dlg.kontraktBox.currentText())})
+                else:
+                    fylkeID = getFylkeID(str(self.dlg.fylkeBox.currentText()))
+                    item.filter({'fylke': fylkeID})
                 nvdbsok2qgis(item, lagnavn=item_text)
             self.dlg.listWidget.clear()
-            """
