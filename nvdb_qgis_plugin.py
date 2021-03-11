@@ -24,7 +24,7 @@
 import os.path
 # NVDB
 from nvdbapiv3 import nvdbFagdata
-from qgis._core import QgsProject, QgsEditorWidgetSetup, QgsWkbTypes, QgsVectorLayer, QgsProcessingException
+from qgis._core import QgsProject, QgsWkbTypes, QgsProcessingException
 from qgis import processing
 
 from nvdbapiV3qgis3 import nvdbsok2qgis
