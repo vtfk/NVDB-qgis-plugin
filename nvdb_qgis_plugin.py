@@ -23,8 +23,10 @@
 """
 import os.path
 # NVDB
-from PyQt5.QtWidgets import QListWidgetItem
 from nvdbapiv3 import nvdbFagdata
+from qgis._core import QgsProject, QgsEditorWidgetSetup, QgsWkbTypes, QgsVectorLayer, QgsProcessingException
+from qgis import processing
+
 from nvdbapiV3qgis3 import nvdbsok2qgis
 from .nvdbobjects import *
 from .nvdbareas import *
@@ -125,6 +127,7 @@ class NvdbQgisPlugin:
         self.dlg.kontraktCheck.toggled.connect(self.kontraktSelected)
         self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKommune)
         self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKontrakt)
+        self.dlg.mergeButton.clicked.connect(self.mergeLayers)
         getAllData()
 
         return action
@@ -219,10 +222,48 @@ class NvdbQgisPlugin:
         self.dlg.kontraktBox.clear()
         self.dlg.kontraktBox.addItems(getKontraktNavn(index))
 
+    def mergeLayers(self):
+        project = QgsProject.instance()
+        completeLayerList = []
+        for id, layer in project.mapLayers().items():
+            currentLayerName = layer.name()
+            currentLayerType = int(layer.wkbType())
+            for id_2, layer_2 in project.mapLayers().items():
+                secondLayerName = layer_2.name()
+                secondLayerType = int(layer_2.wkbType())
+                parameter1 = secondLayerName + "_2d"
+                parameter2 = secondLayerName[:-3]
+                parameter3 = secondLayerName + "_3d"
+                parameter5 = int(repr(currentLayerType)[-1])
+                parameter6 = int(repr(secondLayerType)[-1])
+
+                if secondLayerName in currentLayerName and currentLayerType != secondLayerType and (currentLayerName == parameter1 or currentLayerName == parameter2 or currentLayerName == parameter3) and parameter5 == parameter6:
+                    self.dlg.plainTextEdit.appendPlainText("Slår sammen: " + currentLayerName + " " + str(currentLayerType) + " " + str(secondLayerType) + " "+ secondLayerName)
+                    layerList = [layer, layer_2]
+                    completeLayerList.append(layer)
+                    completeLayerList.append(layer_2)
+                    if len(currentLayerName) > len(secondLayerName):
+                        completeLayerName = currentLayerName[:-3]
+                    else:
+                        completeLayerName = secondLayerName[:-3]
+                    try:
+                        processing.runAndLoadResults("qgis:mergevectorlayers", {'LAYERS':layerList,
+                                'OUTPUT':completeLayerName + " " + QgsWkbTypes.displayString(currentLayerType)})
+                    except QgsProcessingException:
+                        completeLayerList = completeLayerList[:-2]
+                        self.dlg.plainTextEdit.appendPlainText("Fikk problemer med å slå sammen " + str(currentLayerName) + " og " + str(secondLayerName))
+                        self.dlg.plainTextEdit.appendPlainText(str(QgsProcessingException))
+
+                    break
+                else:
+                    pass
+
+        for i in completeLayerList:
+            project.removeMapLayers([i.id()])
+
     def run(self):
         if self.first_start:
             self.first_start = False
-
         self.dlg.comboBox.clear()
         self.dlg.comboBox.addItems(sortCategories())
         self.dlg.fylkeBox.addItems(getFylkeNavn())

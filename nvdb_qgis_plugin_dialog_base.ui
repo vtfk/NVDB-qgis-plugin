@@ -293,6 +293,19 @@
     </widget>
    </widget>
   </widget>
+  <widget class="QPushButton" name="mergeButton">
+   <property name="geometry">
+    <rect>
+     <x>520</x>
+     <y>550</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Merge</string>
+   </property>
+  </widget>
  </widget>
  <resources/>
  <connections>
