@@ -269,6 +269,7 @@ class NvdbQgisPlugin:
         self.dlg.fylkeBox.addItems(getFylkeNavn())
         self.dlg.kommuneBox.setEnabled(False)
         self.dlg.kontraktBox.setEnabled(False)
+        self.dlg.filterButton.setEnabled(False)
         self.dlg.show()
         result = self.dlg.exec_()
         if result:
