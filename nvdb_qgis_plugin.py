@@ -138,7 +138,7 @@ class NvdbQgisPlugin:
         icon_path = ':/plugins/nvdb_qgis_plugin/icon.png'
         self.add_action(
             icon_path,
-            text=self.tr(u'nvdb_test'),
+            text=self.tr(u'NVDB QGIS'),
             callback=self.run,
             parent=self.iface.mainWindow())
 
