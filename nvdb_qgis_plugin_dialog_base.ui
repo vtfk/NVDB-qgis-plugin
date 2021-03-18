@@ -16,9 +16,9 @@
   <widget class="QDialogButtonBox" name="button_box">
    <property name="geometry">
     <rect>
-     <x>700</x>
+     <x>780</x>
      <y>550</y>
-     <width>161</width>
+     <width>81</width>
      <height>21</height>
     </rect>
    </property>
@@ -26,7 +26,7 @@
     <enum>Qt::Horizontal</enum>
    </property>
    <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+    <set>QDialogButtonBox::Cancel</set>
    </property>
   </widget>
   <widget class="QListWidget" name="listWidget">
@@ -317,6 +317,19 @@
    </property>
    <property name="text">
     <string>Valgte vegobjekter</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="kjorButton">
+   <property name="geometry">
+    <rect>
+     <x>700</x>
+     <y>550</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Kjør</string>
    </property>
   </widget>
  </widget>

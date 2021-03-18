@@ -9,10 +9,15 @@ from .nvdbareas import *
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import QAction
+
+from qgis.core import (QgsApplication, QgsTask, QgsMessageLog, Qgis)
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
 from .nvdb_qgis_plugin_dialog import NvdbQgisPluginDialog
+
+import random
+from time import sleep
 
 
 class NvdbQgisPlugin:
@@ -21,6 +26,7 @@ class NvdbQgisPlugin:
         # Save reference to the QGIS interface
         self.dlg = NvdbQgisPluginDialog()
         self.iface = iface
+        self.tm = QgsApplication.taskManager()
         # initialize plugin directory
         self.plugin_dir = os.path.dirname(__file__)
         # initialize locale
@@ -92,10 +98,10 @@ class NvdbQgisPlugin:
         self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKommune)
         self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKontrakt)
         self.dlg.mergeButton.clicked.connect(self.mergeLayers)
+        self.dlg.kjorButton.clicked.connect(self.runTask)
         # Get filterdata
         # TODO: Get catagories
         getAllData()
-
         return action
 
     def initGui(self):
@@ -205,8 +211,11 @@ class NvdbQgisPlugin:
 
                 # TODO: Finn ut hvorfor noen vegobjekter ikke vil slås sammen i algoritmen (Leskur)
 
-                if secondLayerName in currentLayerName and currentLayerType != secondLayerType and (currentLayerName == parameter1 or currentLayerName == parameter2 or currentLayerName == parameter3) and parameter5 == parameter6:
-                    self.dlg.plainTextEdit.appendPlainText("Slår sammen: " + currentLayerName + " " + str(currentLayerType) + " " + str(secondLayerType) + " "+ secondLayerName)
+                if secondLayerName in currentLayerName and currentLayerType != secondLayerType and (
+                        currentLayerName == parameter1 or currentLayerName == parameter2 or currentLayerName == parameter3) and parameter5 == parameter6:
+                    self.dlg.plainTextEdit.appendPlainText(
+                        "Slår sammen: " + currentLayerName + " " + str(currentLayerType) + " " + str(
+                            secondLayerType) + " " + secondLayerName)
                     layerList = [layer, layer_2]
                     completeLayerList.append(layer)
                     completeLayerList.append(layer_2)
@@ -215,11 +224,13 @@ class NvdbQgisPlugin:
                     else:
                         completeLayerName = secondLayerName[:-3]
                     try:
-                        processing.runAndLoadResults("qgis:mergevectorlayers", {'LAYERS':layerList,
-                                'OUTPUT':completeLayerName + " " + QgsWkbTypes.displayString(currentLayerType)})
+                        processing.runAndLoadResults("qgis:mergevectorlayers", {'LAYERS': layerList,
+                                                                                'OUTPUT': completeLayerName + " " + QgsWkbTypes.displayString(
+                                                                                    currentLayerType)})
                     except QgsProcessingException:
                         completeLayerList = completeLayerList[:-2]
-                        self.dlg.plainTextEdit.appendPlainText("Fikk problemer med å slå sammen " + str(currentLayerName) + " og " + str(secondLayerName))
+                        self.dlg.plainTextEdit.appendPlainText(
+                            "Fikk problemer med å slå sammen " + str(currentLayerName) + " og " + str(secondLayerName))
                         self.dlg.plainTextEdit.appendPlainText(str(QgsProcessingException))
 
                     break
@@ -228,6 +239,32 @@ class NvdbQgisPlugin:
 
         for i in completeLayerList:
             project.removeMapLayers([i.id()])
+
+    def createLayers(self):
+        objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
+        for item in objList:
+            item_text = item
+            item_id = getID(item)
+            item = nvdbFagdata(item_id)
+            if self.dlg.kommuneCheck.isChecked():
+                kommuneID = getKommuneID(str(self.dlg.kommuneBox.currentText()))
+                item.filter({'kommune': kommuneID})
+            elif self.dlg.kontraktCheck.isChecked():
+                item.filter({'kontraktsomrade': str(self.dlg.kontraktBox.currentText())})
+            else:
+                fylkeID = getFylkeID(str(self.dlg.fylkeBox.currentText()))
+                item.filter({'fylke': fylkeID})
+            nvdbsok2qgis(item, lagnavn=item_text)
+        self.dlg.listWidget.clear()
+
+    def runTask(self):
+        self.iface.actionShowPythonDialog().trigger()
+        objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
+        for item in objList:
+            task1 = QgsTask.fromFunction("Henter: " + item, getLayers, on_finished=completed, item=item, qtGui=self.dlg)
+            self.tm.addTask(task1)
+            self.dlg.listWidget.clear()
+
 
     def run(self):
         if self.first_start:
@@ -241,21 +278,51 @@ class NvdbQgisPlugin:
         self.dlg.show()
         result = self.dlg.exec_()
         if result:
+            """ Close """
 
-            """ Visualize selected layers """
 
-            objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
-            for item in objList:
-                item_text = item
-                item_id = getID(item)
-                item = nvdbFagdata(item_id)
-                if self.dlg.kommuneCheck.isChecked():
-                    kommuneID = getKommuneID(str(self.dlg.kommuneBox.currentText()))
-                    item.filter({'kommune': kommuneID})
-                elif self.dlg.kontraktCheck.isChecked():
-                    item.filter({'kontraktsomrade': str(self.dlg.kontraktBox.currentText())})
-                else:
-                    fylkeID = getFylkeID(str(self.dlg.fylkeBox.currentText()))
-                    item.filter({'fylke': fylkeID})
-                nvdbsok2qgis(item, lagnavn=item_text)
-            self.dlg.listWidget.clear()
+def getLayers(task, item, qtGui):
+    """
+    Raises an exception to abort the task.
+    Returns a result if success.
+    The result will be passed, together with the exception (None in
+    the case of success), to the on_finished method.
+    If there is an exception, there will be no result.
+    """
+    item_text = item
+    item_id = getID(item)
+    item = nvdbFagdata(item_id)
+    if qtGui.kommuneCheck.isChecked():
+        kommuneID = getKommuneID(str(qtGui.kommuneBox.currentText()))
+        item.filter({'kommune': kommuneID})
+    elif qtGui.kontraktCheck.isChecked():
+        item.filter({'kontraktsomrade': str(qtGui.kontraktBox.currentText())})
+    else:
+        fylkeID = getFylkeID(str(qtGui.fylkeBox.currentText()))
+        item.filter({'fylke': fylkeID})
+    qtGui.plainTextEdit.appendPlainText("Henter " + item_text)
+    if task.isCanceled():
+        stopped(task)
+        return None
+    # raise an exception to abort the task
+    if task == "Ikke test denne":
+        raise Exception('no pls')
+    return {'name': task, 'item': item, 'item_text': item_text}
+
+def stopped(task):
+    print("Task stopped" + task)
+
+def completed(exception, result=None):
+    """This is called when doSomething is finished.
+    Exception is not None if doSomething raises an exception.
+    result is the return value of doSomething."""
+
+    if exception is None:
+        if result is None:
+            print('Completed with no exception and no result')
+        else:
+            nvdbsok2qgis(result['item'], lagnavn=result['item_text'])
+            print("Task: " + result['name'] + " done.")
+    else:
+        print("Exception" + str(exception))
+        raise exception
