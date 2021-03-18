@@ -274,7 +274,6 @@ class NvdbQgisPlugin:
         self.dlg.fylkeBox.addItems(getFylkeNavn())
         self.dlg.kommuneBox.setEnabled(False)
         self.dlg.kontraktBox.setEnabled(False)
-        self.dlg.filterButton.setEnabled(False)
         self.dlg.show()
         result = self.dlg.exec_()
         if result:
@@ -322,7 +321,6 @@ def completed(exception, result=None):
             print('Completed with no exception and no result')
         else:
             nvdbsok2qgis(result['item'], lagnavn=result['item_text'])
-            print("Task: " + result['name'] + " done.")
     else:
         print("Exception" + str(exception))
         raise exception
