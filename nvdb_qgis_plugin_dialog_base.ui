@@ -29,19 +29,6 @@
     <set>QDialogButtonBox::Cancel</set>
    </property>
   </widget>
-  <widget class="QPlainTextEdit" name="plainTextEdit">
-   <property name="geometry">
-    <rect>
-     <x>630</x>
-     <y>10</y>
-     <width>231</width>
-     <height>521</height>
-    </rect>
-   </property>
-   <property name="readOnly">
-    <bool>true</bool>
-   </property>
-  </widget>
   <widget class="QTabWidget" name="tabWidget">
    <property name="geometry">
     <rect>
@@ -415,6 +402,19 @@
    </property>
    <property name="text">
     <string>Kjør</string>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="textEdit">
+   <property name="geometry">
+    <rect>
+     <x>610</x>
+     <y>10</y>
+     <width>251</width>
+     <height>521</height>
+    </rect>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

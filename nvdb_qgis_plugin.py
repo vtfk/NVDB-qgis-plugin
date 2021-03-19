@@ -9,6 +9,7 @@ from .nvdbareas import *
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QDockWidget
 
 from qgis.core import (QgsApplication, QgsTask, QgsMessageLog, Qgis)
 # Initialize Qt resources from file resources.py
@@ -161,7 +162,7 @@ class NvdbQgisPlugin:
 
     def comboBox_itemChanged(self, index):
         items = getObjInCat(index)
-        self.dlg.plainTextEdit.appendPlainText("Kategori: " + index)
+        self.dlg.textEdit.append("Kategori: " + index)
         self.dlg.listWidgetObjects.clear()
         self.dlg.listWidgetObjects.addItems(items)
 
@@ -169,7 +170,7 @@ class NvdbQgisPlugin:
         all_items = self.dlg.listWidgetObjects.selectedItems()
         for i in range(len(all_items)):
             self.dlg.listWidget.addItem(all_items[i].text())
-            self.dlg.plainTextEdit.appendPlainText("Lagt til " + all_items[i].text())
+            self.dlg.textEdit.append("Lagt til " + all_items[i].text())
         self.dlg.listWidgetObjects.clearSelection()
 
     def removeItem(self):
@@ -179,14 +180,26 @@ class NvdbQgisPlugin:
         else:
             for i in range(len(selected_items)):
                 r = self.dlg.listWidget.row(selected_items[i])
-                self.dlg.plainTextEdit.appendPlainText("Fjernet " + selected_items[i].text())
+                self.dlg.textEdit.append("Fjernet " + selected_items[i].text())
                 self.dlg.listWidget.takeItem(r)
+
+    def successMessage(self, message):
+        successText = "<span style=\" color:#2ECC71;\" >"
+        successText += message
+        successText += "</span>"
+        self.dlg.textEdit.append(successText)
+
+    def errorMessage(self, message):
+        errorText = "<span style=\" color:#ff0000;\" >"
+        errorText += message
+        errorText += "</span>"
+        self.dlg.textEdit.append(errorText)
 
     def clearSelection(self):
         self.dlg.listWidgetObjects.clearSelection()
 
     def getKommune(self, index):
-        self.dlg.plainTextEdit.appendPlainText("Fylke: " + index)
+        self.dlg.textEdit.append("Fylke: " + index)
         self.dlg.kommuneBox.clear()
         self.dlg.kommuneBox.addItems(getKommuneNavn(index))
 
@@ -209,11 +222,9 @@ class NvdbQgisPlugin:
                 parameter5 = int(repr(currentLayerType)[-1])
                 parameter6 = int(repr(secondLayerType)[-1])
 
-                # TODO: Finn ut hvorfor noen vegobjekter ikke vil slås sammen i algoritmen (Leskur)
-
                 if secondLayerName in currentLayerName and currentLayerType != secondLayerType and (
                         currentLayerName == parameter1 or currentLayerName == parameter2 or currentLayerName == parameter3) and parameter5 == parameter6:
-                    self.dlg.plainTextEdit.appendPlainText(
+                    self.dlg.textEdit.append(
                         "Slår sammen: " + currentLayerName + " " + str(currentLayerType) + " " + str(
                             secondLayerType) + " " + secondLayerName)
                     layerList = [layer, layer_2]
@@ -225,13 +236,14 @@ class NvdbQgisPlugin:
                         completeLayerName = secondLayerName[:-3]
                     try:
                         processing.runAndLoadResults("qgis:mergevectorlayers", {'LAYERS': layerList,
-                                                                                'OUTPUT': completeLayerName + " " + QgsWkbTypes.displayString(
-                                                                                    currentLayerType)})
+                                                                                'OUTPUT': completeLayerName + " " +
+                                                                                QgsWkbTypes.displayString(
+                                                                                              currentLayerType)})
                     except QgsProcessingException:
                         completeLayerList = completeLayerList[:-2]
-                        self.dlg.plainTextEdit.appendPlainText(
+                        self.errorMessage(
                             "Fikk problemer med å slå sammen " + str(currentLayerName) + " og " + str(secondLayerName))
-                        self.dlg.plainTextEdit.appendPlainText(str(QgsProcessingException))
+                        self.dlg.textEdit.append(str(QgsProcessingException))
 
                     break
                 else:
@@ -258,13 +270,14 @@ class NvdbQgisPlugin:
         self.dlg.listWidget.clear()
 
     def runTask(self):
-        self.iface.actionShowPythonDialog().trigger()
+        pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
+        if not pythonConsole or not pythonConsole.isVisible():
+            self.iface.actionShowPythonDialog().trigger()
         objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
         for item in objList:
             task1 = QgsTask.fromFunction("Henter: " + item, getLayers, on_finished=completed, item=item, qtGui=self.dlg)
             self.tm.addTask(task1)
             self.dlg.listWidget.clear()
-
 
     def run(self):
         if self.first_start:
@@ -299,7 +312,6 @@ def getLayers(task, item, qtGui):
     else:
         fylkeID = getFylkeID(str(qtGui.fylkeBox.currentText()))
         item.filter({'fylke': fylkeID})
-    qtGui.plainTextEdit.appendPlainText("Henter " + item_text)
     if task.isCanceled():
         stopped(task)
         return None
@@ -308,8 +320,10 @@ def getLayers(task, item, qtGui):
         raise Exception('no pls')
     return {'name': task, 'item': item, 'item_text': item_text}
 
+
 def stopped(task):
     print("Task stopped" + task)
+
 
 def completed(exception, result=None):
     """This is called when doSomething is finished.
