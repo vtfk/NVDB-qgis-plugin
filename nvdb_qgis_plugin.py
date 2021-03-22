@@ -102,7 +102,8 @@ class NvdbQgisPlugin:
         self.dlg.kjorButton.clicked.connect(self.runTask)
         # Get filterdata
         # TODO: Get catagories
-        getAllData()
+        getAllAreaData()
+        getAllObjectData()
         return action
 
     def initGui(self):
@@ -161,10 +162,14 @@ class NvdbQgisPlugin:
             self.dlg.kommuneCheck.setEnabled(True)
 
     def comboBox_itemChanged(self, index):
-        items = getObjInCat(index)
-        self.dlg.textEdit.append("Kategori: " + index)
         self.dlg.listWidgetObjects.clear()
-        self.dlg.listWidgetObjects.addItems(items)
+        self.dlg.textEdit.append("Kategori: " + index)
+        if index == "Alle":
+            items = getNames()
+            self.dlg.listWidgetObjects.addItems(items)
+        else:
+            items = getObjInCat(index)
+            self.dlg.listWidgetObjects.addItems(items)
 
     def addItem(self):
         all_items = self.dlg.listWidgetObjects.selectedItems()
