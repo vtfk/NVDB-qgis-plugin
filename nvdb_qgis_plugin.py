@@ -93,17 +93,18 @@ class NvdbQgisPlugin:
         self.dlg.addButton.clicked.connect(self.addItem)
         self.dlg.removeButton.clicked.connect(self.removeItem)
         self.dlg.clearButton.clicked.connect(self.clearSelection)
-        self.dlg.individCheck.toggled.connect(self.individualSelected)
         self.dlg.kommuneCheck.toggled.connect(self.kommuneSelected)
         self.dlg.kontraktCheck.toggled.connect(self.kontraktSelected)
         self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKommune)
         self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKontrakt)
         self.dlg.mergeButton.clicked.connect(self.mergeLayers)
         self.dlg.kjorButton.clicked.connect(self.runTask)
+        self.dlg.vegsystemBox.currentIndexChanged[str].connect(self.vegsystemBox_itemChanged)
         # Get filterdata
         # TODO: Get catagories
         getAllAreaData()
         getAllObjectData()
+        self.dlg.vegsystemBox.addItems(returnVegreferanseData())
         return action
 
     def initGui(self):
@@ -127,39 +128,21 @@ class NvdbQgisPlugin:
                 action)
             self.iface.removeToolBarIcon(action)
 
-    def individualSelected(self):
-        if self.dlg.individCheck.isChecked():
-            self.dlg.kommuneCheck.setEnabled(False)
-            self.dlg.kontraktCheck.setEnabled(False)
-            self.dlg.fylkeBox.setEnabled(False)
-            self.dlg.kommuneBox.setEnabled(False)
-            self.dlg.kontraktBox.setEnabled(False)
-        else:
-            self.dlg.kontraktCheck.setEnabled(True)
-            self.dlg.kommuneCheck.setEnabled(True)
-            self.dlg.fylkeBox.setEnabled(True)
-
     def kommuneSelected(self):
         if self.dlg.kommuneCheck.isChecked():
             self.dlg.kommuneBox.setEnabled(True)
-            self.dlg.individCheck.setEnabled(False)
-            self.dlg.kontraktCheck.setEnabled(False)
+            self.dlg.kontraktCheck.setChecked(False)
             self.dlg.kontraktBox.setEnabled(False)
         else:
             self.dlg.kommuneBox.setEnabled(False)
-            self.dlg.individCheck.setEnabled(True)
-            self.dlg.kontraktCheck.setEnabled(True)
 
     def kontraktSelected(self):
         if self.dlg.kontraktCheck.isChecked():
             self.dlg.kontraktBox.setEnabled(True)
-            self.dlg.individCheck.setEnabled(False)
-            self.dlg.kommuneCheck.setEnabled(False)
+            self.dlg.kommuneCheck.setChecked(False)
             self.dlg.kommuneBox.setEnabled(False)
         else:
             self.dlg.kontraktBox.setEnabled(False)
-            self.dlg.individCheck.setEnabled(True)
-            self.dlg.kommuneCheck.setEnabled(True)
 
     def comboBox_itemChanged(self, index):
         self.dlg.listWidgetObjects.clear()
@@ -170,6 +153,10 @@ class NvdbQgisPlugin:
         else:
             items = getObjInCat(index)
             self.dlg.listWidgetObjects.addItems(items)
+
+    def vegsystemBox_itemChanged(self, index):
+        self.dlg.textEdit.append("Vegsystemreferanse: " + index)
+        selectedVegreferanse(index)
 
     def addItem(self):
         all_items = self.dlg.listWidgetObjects.selectedItems()
@@ -257,22 +244,6 @@ class NvdbQgisPlugin:
         for i in completeLayerList:
             project.removeMapLayers([i.id()])
 
-    def createLayers(self):
-        objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
-        for item in objList:
-            item_text = item
-            item_id = getID(item)
-            item = nvdbFagdata(item_id)
-            if self.dlg.kommuneCheck.isChecked():
-                kommuneID = getKommuneID(str(self.dlg.kommuneBox.currentText()))
-                item.filter({'kommune': kommuneID})
-            elif self.dlg.kontraktCheck.isChecked():
-                item.filter({'kontraktsomrade': str(self.dlg.kontraktBox.currentText())})
-            else:
-                fylkeID = getFylkeID(str(self.dlg.fylkeBox.currentText()))
-                item.filter({'fylke': fylkeID})
-            nvdbsok2qgis(item, lagnavn=item_text)
-        self.dlg.listWidget.clear()
 
     def runTask(self):
         pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
@@ -280,9 +251,12 @@ class NvdbQgisPlugin:
             self.iface.actionShowPythonDialog().trigger()
         objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
         for item in objList:
-            task1 = QgsTask.fromFunction("Henter: " + item, getLayers, on_finished=completed, item=item, qtGui=self.dlg)
-            self.tm.addTask(task1)
+            task = QgsTask.fromFunction("Henter: " + item, getLayers, on_finished=completed, item=item, qtGui=self.dlg)
+            self.tm.addTask(task)
             self.dlg.listWidget.clear()
+        print("DONE")
+        if self.tm.allTasksFinished():
+            print("all tasks finished")
 
     def run(self):
         if self.first_start:
@@ -317,6 +291,8 @@ def getLayers(task, item, qtGui):
     else:
         fylkeID = getFylkeID(str(qtGui.fylkeBox.currentText()))
         item.filter({'fylke': fylkeID})
+    if returnSelectedVegreferanse() != "Alle":
+        item.filter({'vegsystemreferanse': [returnSelectedVegreferanse()[0]]})
     if task.isCanceled():
         stopped(task)
         return None
