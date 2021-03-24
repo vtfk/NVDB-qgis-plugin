@@ -16,9 +16,9 @@
   <widget class="QDialogButtonBox" name="button_box">
    <property name="geometry">
     <rect>
-     <x>700</x>
+     <x>780</x>
      <y>550</y>
-     <width>161</width>
+     <width>81</width>
      <height>21</height>
     </rect>
    </property>
@@ -26,46 +26,7 @@
     <enum>Qt::Horizontal</enum>
    </property>
    <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
-  </widget>
-  <widget class="QListWidget" name="listWidget">
-   <property name="geometry">
-    <rect>
-     <x>10</x>
-     <y>340</y>
-     <width>211</width>
-     <height>231</height>
-    </rect>
-   </property>
-   <property name="alternatingRowColors">
-    <bool>true</bool>
-   </property>
-   <property name="selectionMode">
-    <enum>QAbstractItemView::MultiSelection</enum>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="removeButton">
-   <property name="geometry">
-    <rect>
-     <x>230</x>
-     <y>550</y>
-     <width>75</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Fjern</string>
-   </property>
-  </widget>
-  <widget class="QPlainTextEdit" name="plainTextEdit">
-   <property name="geometry">
-    <rect>
-     <x>630</x>
-     <y>10</y>
-     <width>231</width>
-     <height>521</height>
-    </rect>
+    <set>QDialogButtonBox::Cancel</set>
    </property>
   </widget>
   <widget class="QTabWidget" name="tabWidget">
@@ -73,12 +34,12 @@
     <rect>
      <x>10</x>
      <y>20</y>
-     <width>601</width>
-     <height>301</height>
+     <width>591</width>
+     <height>511</height>
     </rect>
    </property>
    <property name="currentIndex">
-    <number>3</number>
+    <number>1</number>
    </property>
    <widget class="QWidget" name="tab">
     <attribute name="title">
@@ -89,8 +50,8 @@
       <rect>
        <x>10</x>
        <y>50</y>
-       <width>581</width>
-       <height>191</height>
+       <width>341</width>
+       <height>391</height>
       </rect>
      </property>
      <property name="alternatingRowColors">
@@ -104,7 +65,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>250</y>
+       <y>450</y>
        <width>75</width>
        <height>23</height>
       </rect>
@@ -117,7 +78,7 @@
      <property name="geometry">
       <rect>
        <x>100</x>
-       <y>250</y>
+       <y>450</y>
        <width>111</width>
        <height>23</height>
       </rect>
@@ -149,32 +110,58 @@
       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Velg Kategori&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
      </property>
     </widget>
+    <widget class="QListWidget" name="listWidget">
+     <property name="geometry">
+      <rect>
+       <x>360</x>
+       <y>50</y>
+       <width>211</width>
+       <height>391</height>
+      </rect>
+     </property>
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::MultiSelection</enum>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>360</x>
+       <y>30</y>
+       <width>131</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Valgte vegobjekter</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="removeButton">
+     <property name="geometry">
+      <rect>
+       <x>480</x>
+       <y>450</y>
+       <width>91</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Fjern vegobjekt</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="tab_2">
     <attribute name="title">
      <string>Filtrering</string>
     </attribute>
-    <widget class="QCheckBox" name="individCheck">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>121</width>
-       <height>17</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Individuell Filtrering</string>
-     </property>
-     <property name="tristate">
-      <bool>false</bool>
-     </property>
-    </widget>
     <widget class="QLabel" name="label_2">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>100</y>
+       <y>70</y>
        <width>71</width>
        <height>16</height>
       </rect>
@@ -187,7 +174,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>170</y>
+       <y>140</y>
        <width>271</width>
        <height>22</height>
       </rect>
@@ -197,7 +184,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>150</y>
+       <y>120</y>
        <width>47</width>
        <height>13</height>
       </rect>
@@ -210,7 +197,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>120</y>
+       <y>90</y>
        <width>271</width>
        <height>22</height>
       </rect>
@@ -220,7 +207,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>50</y>
+       <y>30</y>
        <width>101</width>
        <height>17</height>
       </rect>
@@ -233,7 +220,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>70</y>
+       <y>50</y>
        <width>111</width>
        <height>17</height>
       </rect>
@@ -259,7 +246,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>220</y>
+       <y>190</y>
        <width>271</width>
        <height>22</height>
       </rect>
@@ -269,7 +256,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>200</y>
+       <y>170</y>
        <width>91</width>
        <height>16</height>
       </rect>
@@ -278,17 +265,63 @@
       <string>Kontraktsområde</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="filterButton">
+    <widget class="QComboBox" name="vegsystemBox">
      <property name="geometry">
       <rect>
-       <x>500</x>
+       <x>10</x>
+       <y>270</y>
+       <width>271</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_9">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
        <y>250</y>
-       <width>91</width>
-       <height>23</height>
+       <width>111</width>
+       <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>Start filtrering</string>
+      <string>Vegsystemreferanse</string>
+     </property>
+    </widget>
+    <widget class="Line" name="line">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>230</y>
+       <width>271</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QTextEdit" name="filterEdit">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>30</y>
+       <width>261</width>
+       <height>261</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_10">
+     <property name="geometry">
+      <rect>
+       <x>310</x>
+       <y>10</y>
+       <width>121</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Foreløpig valgt filtrering</string>
      </property>
     </widget>
    </widget>
@@ -514,7 +547,7 @@
   <widget class="QPushButton" name="mergeButton">
    <property name="geometry">
     <rect>
-     <x>320</x>
+     <x>580</x>
      <y>550</y>
      <width>101</width>
      <height>23</height>
@@ -524,17 +557,30 @@
     <string>Slå sammen lag</string>
    </property>
   </widget>
-  <widget class="QLabel" name="label_4">
+  <widget class="QPushButton" name="kjorButton">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>320</y>
-     <width>131</width>
-     <height>16</height>
+     <x>700</x>
+     <y>550</y>
+     <width>75</width>
+     <height>23</height>
     </rect>
    </property>
    <property name="text">
-    <string>Valgte vegobjekter</string>
+    <string>Kjør</string>
+   </property>
+  </widget>
+  <widget class="QTextEdit" name="textEdit">
+   <property name="geometry">
+    <rect>
+     <x>610</x>
+     <y>10</y>
+     <width>251</width>
+     <height>521</height>
+    </rect>
+   </property>
+   <property name="readOnly">
+    <bool>true</bool>
    </property>
   </widget>
  </widget>

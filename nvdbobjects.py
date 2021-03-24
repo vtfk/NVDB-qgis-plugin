@@ -1,10 +1,28 @@
 import requests
 import json
 
+class nvdbobjects:
+    def __init__(self):
+        self.categories = None
 
-def getNvdb():
-    response = requests.get('https://nvdbapiles-v3.utv.atlas.vegvesen.no/vegobjekttyper')
+    def getCategoryData(self):
+        return self.categories
+
+    def setCategoryData(self, c):
+        self.categories = c
+
+nvdb = nvdbobjects()
+
+def getRequest(req):
+    response = requests.get(req)
     return json.loads(response.text)
+
+def getAllObjectData():
+    mainReq = getRequest('https://nvdbapiles-v3.utv.atlas.vegvesen.no/vegobjekttyper')
+    nvdb.setCategoryData(mainReq)
+
+def returnCategoryData():
+    return nvdb.getCategoryData()
 
 
 """Henter navn på alle vegobjektene"""
@@ -13,11 +31,11 @@ def getNvdb():
 def getNames():
     nameList = []
 
-    for obj in getNvdb():
+    for obj in returnCategoryData():
         name = obj['navn']
         nameList.append(name)
 
-    return nameList
+    return sorted(nameList)
 
 
 """Henter kategorier"""
@@ -26,7 +44,7 @@ def getNames():
 def getCategories():
     categoryList = []
 
-    for obj in getNvdb():
+    for obj in returnCategoryData():
         cat = obj['kategorier']
         categoryList.append(cat)
 
@@ -54,7 +72,7 @@ def sortCategories():
                     pass
             except IndexError:
                 print('no data')
-
+    sortedCatList.append("Alle")
     return sorted(sortedCatList)
 
 
@@ -90,7 +108,7 @@ def getObjInCat(cat):
 
 def getID(selected_item):
     item_id = 0
-    for obj in getNvdb():
+    for obj in returnCategoryData():
         if selected_item == obj['navn']:
             item_id = obj['id']
         else:
