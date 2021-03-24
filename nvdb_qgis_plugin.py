@@ -6,6 +6,7 @@ from qgis import processing
 from nvdbapiV3qgis3 import nvdbsok2qgis
 from .nvdbobjects import *
 from .nvdbareas import *
+from .nvdbpresets import *
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import QAction
@@ -99,11 +100,11 @@ class NvdbQgisPlugin:
         self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKontrakt)
         self.dlg.mergeButton.clicked.connect(self.mergeLayers)
         self.dlg.kjorButton.clicked.connect(self.runTask)
+        self.dlg.saveButton.clicked.connect(self.saveAsPreset)
         self.dlg.vegsystemBox.currentIndexChanged[str].connect(self.vegsystemBox_itemChanged)
-        # Get filterdata
-        # TODO: Get catagories
         getAllAreaData()
         getAllObjectData()
+        getAllPresetData()
         self.dlg.vegsystemBox.addItems(returnVegreferanseData())
         return action
 
@@ -162,6 +163,7 @@ class NvdbQgisPlugin:
         all_items = self.dlg.listWidgetObjects.selectedItems()
         for i in range(len(all_items)):
             self.dlg.listWidget.addItem(all_items[i].text())
+            self.dlg.objectsList_Search.addItem(all_items[i].text())
             self.dlg.textEdit.append("Lagt til " + all_items[i].text())
         self.dlg.listWidgetObjects.clearSelection()
 
@@ -244,6 +246,21 @@ class NvdbQgisPlugin:
         for i in completeLayerList:
             project.removeMapLayers([i.id()])
 
+    def saveAsPreset(self):
+        objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
+        areaType = None
+        area = None
+        if self.dlg.kommuneCheck.isChecked():
+            area = str(self.dlg.kommuneBox.currentText())
+            areaType = "kommune"
+        elif self.dlg.kontraktCheck.isChecked():
+            area = str(self.dlg.kontraktBox.currentText())
+            areaType = "kontraktsomrade"
+        else:
+            area = str(self.dlg.fylkeBox.currentText())
+            areaType = "fylke"
+        road = returnSelectedVegreferanse()
+
 
     def runTask(self):
         pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
@@ -254,9 +271,6 @@ class NvdbQgisPlugin:
             task = QgsTask.fromFunction("Henter: " + item, getLayers, on_finished=completed, item=item, qtGui=self.dlg)
             self.tm.addTask(task)
             self.dlg.listWidget.clear()
-        print("DONE")
-        if self.tm.allTasksFinished():
-            print("all tasks finished")
 
     def run(self):
         if self.first_start:
