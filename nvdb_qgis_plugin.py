@@ -1,14 +1,24 @@
 # -*- coding: utf-8 -*-
 import os.path
+import os
 from nvdbapiv3 import nvdbFagdata
 from qgis._core import QgsProject, QgsWkbTypes, QgsProcessingException
+from qgis.core import *
+from qgis.utils import iface
 from qgis import processing
 from nvdbapiV3qgis3 import nvdbsok2qgis
 from .nvdbobjects import *
 from .nvdbareas import *
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import *
-from qgis.PyQt.QtWidgets import QAction
+from qgis.PyQt.QtWidgets import QAction, QFileDialog
+from PyQt5.QtWidgets import QListView, QMessageBox
+from PyQt5 import QtGui, QtCore
+
+import csvdiff
+import itertools as itools
+from datetime import date
+
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
@@ -82,6 +92,11 @@ class NvdbQgisPlugin:
 
         self.actions.append(action)
         # Connect all actions
+        self.dlg.dirOldButton.clicked.connect(self.select_oldDir)
+        self.dlg.dirNewButton.clicked.connect(self.select_newDir)
+        self.dlg.dirResultButton.clicked.connect(self.select_dirResult)
+        self.dlg.skrivtilcsvButton.clicked.connect(self.exportLayers)
+        self.dlg.compareButton.clicked.connect(self.comparefiles)
         self.dlg.comboBox.currentIndexChanged[str].connect(self.comboBox_itemChanged)
         self.dlg.addButton.clicked.connect(self.addItem)
         self.dlg.removeButton.clicked.connect(self.removeItem)
@@ -92,6 +107,7 @@ class NvdbQgisPlugin:
         self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKommune)
         self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKontrakt)
         self.dlg.mergeButton.clicked.connect(self.mergeLayers)
+        self.dlg.selectdirButton.clicked.connect(self.select_output_dir)
         # Get filterdata
         # TODO: Get catagories
         getAllData()
@@ -118,6 +134,132 @@ class NvdbQgisPlugin:
                 self.tr(u'&NVDB QGIS'),
                 action)
             self.iface.removeToolBarIcon(action)
+
+
+    def select_oldDir(self):
+        selectedDirOld = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
+        self.dlg.lineEdit_dirOld.setText(selectedDirOld)
+    def select_newDir(self):
+        selectedDirNew = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
+        self.dlg.lineEdit_dirNew.setText(selectedDirNew)
+    def select_dirResult(self):
+        output_dirResult = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
+        self.dlg.lineEdit_dirResult.setText(output_dirResult)
+
+    def comparefiles(self):
+        dirOldFiles = []
+        dirNewFiles = []
+
+        selectedDirOld = self.dlg.lineEdit_dirOld.text().strip()
+        selectedDirNew = self.dlg.lineEdit_dirNew.text().strip()
+        selectedOutPutDir = self.dlg.lineEdit_dirResult.text().strip()
+
+        outputFilename = ('Resultat' + '_' + str(date.today()) + '.txt')
+
+        file_path = os.path.join(selectedOutPutDir, outputFilename)
+        if not os.path.isdir(selectedOutPutDir):
+            os.makedirs(selectedOutPutDir)
+
+        for filenameOld in os.listdir(selectedDirOld):
+            if filenameOld.endswith(".csv"):
+                dirOldFiles.append(filenameOld)
+                #print(dirOldFiles)
+            else:
+                print("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
+
+        for filenameNew in os.listdir(selectedDirNew):
+            if filenameNew.endswith(".csv"):
+                dirNewFiles.append(filenameNew)
+                #print(dirNewFiles)
+            else:
+                print("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
+
+        #Sjekker etter filer som har samme nanv, de filene som ikke har same navn vil bli lagt i en liste og
+        #brukeren vil se hvilken filer som ikke ligger i sjekkmappen, diroldfiles.
+        filter_listold = [string for string in dirOldFiles if string not in dirNewFiles]
+        if not filter_listold:
+            pass
+        else:
+            #print('Disse filene: ', filter_listold, 'finnes ikke i sjekk mappen, disse vil bli fjernet fra sammenligningen.')
+            for i in filter_listold:
+                dirOldFiles.remove(i)
+
+        filter_listnew = [string for string in dirNewFiles if string not in dirOldFiles]
+        if not filter_listnew:
+            pass
+        else:
+            #print('Disse filene: ', filter_listnew, 'finnes ikke i sjekk mappen, disse vil bli fjernet fra sammenligningen.')
+
+            for i in filter_listnew:
+                dirNewFiles.remove(i)
+
+        checkfile = []
+        newcheck = []
+        fileResult = open(file_path,'w')
+        for oldfile in dirOldFiles:
+            checkfile.append(oldfile)
+
+        for newfile in dirNewFiles:
+            newcheck.append(newfile)
+
+        fileResult.write("Resultat av sammenligning, " + "Dato: " + str(date.today()) + '\n')
+
+        for old, new in zip(checkfile, newcheck):
+            print('{} {}'.format(old, new))
+
+            patch  = csvdiff.diff_files(selectedDirOld + '/' + old,
+                                        selectedDirNew + '/' + new,
+                                        ['nvdbid'])
+            #print(patch)
+            if patch["changed"]: #Om nøkkelen "changed" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
+                fileResult.write('\n' + "Endringer i fil: " + new + '\n')
+                for c in (patch['changed']):
+                    fileResult.write(str(c) + '\n')
+            else:
+                self.dlg.plainTextEdit.appendPlainText("Ingen felt er endret i filen: " + new)
+
+            if patch["removed"]:#Om nøkkelen "removed" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
+                fileResult.write('\n' + "Objekter fjernet i fil: " + new + '\n')
+                for r in (patch['removed']):
+                    fileResult.write(str(r) + '\n')
+            else:
+                self.dlg.plainTextEdit.appendPlainText("Ingen objekter er fjernet i fil: " + new)
+
+            if patch["added"]:#Om nøkkelen "added" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
+                fileResult.write('\n' + "Objekter lagt til i fil: " + new + '\n')
+                for a in (patch['added']):
+                    fileResult.write(str(a) + '\n')
+            else:
+                self.dlg.plainTextEdit.appendPlainText("Ingen objekter er lagt til i fil: " + new)
+
+            if patch:
+                self.dlg.plainTextEdit.appendPlainText("Sammenligning av fil: " + new + " er ferdig")
+        fileResult.close()
+
+    def exportLayers(self):
+        today = date.today()
+        dmy = today.strftime("_%d%m%y")
+
+        options = QgsVectorFileWriter.SaveVectorOptions()
+        options.driverName = "CSV"
+
+        #Henter filsti navn
+        output_dir = self.dlg.lineEdit_dir.text().strip()
+
+        for layer in self.iface.mapCanvas().layers():
+            if layer.type() == QgsMapLayer.VectorLayer:
+                self.dlg.plainTextEdit.appendPlainText('Skriver: ' + layer.name() + ' til CSV')
+                layer_filename = os.path.join(output_dir, layer.name())
+                writer = QgsVectorFileWriter.writeAsVectorFormatV2(layer,
+                                                                   layer_filename + dmy,
+                                                                   QgsCoordinateTransformContext(), options)
+                if writer[0]:
+                    self.iface.messageBar().pushMessage("NVDB Utskrift Error", "Klarte ikke å skrive ut: " + layer.name() + " Status: " + str(writer), level=Qgis.Critical)
+        self.dlg.plainTextEdit.appendPlainText('Utskrift fullført!')
+
+    def select_output_dir(self):
+        output_dir = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
+        self.dlg.lineEdit_dir.setText(output_dir)
 
     def individualSelected(self):
         if self.dlg.individCheck.isChecked():
@@ -238,6 +380,11 @@ class NvdbQgisPlugin:
         self.dlg.kommuneBox.setEnabled(False)
         self.dlg.kontraktBox.setEnabled(False)
         self.dlg.filterButton.setEnabled(False)
+
+        self.openLayers = openLayers = QgsProject.instance().layerTreeRoot().children()
+        self.dlg.listWidget_layers.clear()
+        self.dlg.listWidget_layers.addItems([layer.name() for layer in openLayers])
+
         self.dlg.show()
         result = self.dlg.exec_()
         if result:
