@@ -2,9 +2,7 @@
 import os.path
 import os
 from nvdbapiv3 import nvdbFagdata
-from qgis._core import QgsProject, QgsWkbTypes, QgsProcessingException
 from qgis.core import *
-from qgis.utils import iface
 from qgis import processing
 from nvdbapiV3qgis3 import nvdbsok2qgis
 from .nvdbobjects import *
@@ -12,9 +10,7 @@ from .nvdbareas import *
 from .nvdbpresets import *
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import *
-from qgis.PyQt.QtWidgets import QAction, QDockWidget
-
-
+from qgis.PyQt.QtWidgets import QDockWidget
 from qgis.PyQt.QtWidgets import QAction, QFileDialog
 from PyQt5.QtWidgets import QListView, QMessageBox
 from PyQt5 import QtGui, QtCore
@@ -22,14 +18,10 @@ from PyQt5 import QtGui, QtCore
 import csvdiff
 import itertools as itools
 from datetime import date
-
 # Initialize Qt resources from file resources.py
 from .resources import *
 # Import the code for the dialog
 from .nvdb_qgis_plugin_dialog import NvdbQgisPluginDialog
-
-import random
-from time import sleep
 
 
 class NvdbQgisPlugin:
@@ -113,6 +105,9 @@ class NvdbQgisPlugin:
         self.dlg.kontraktCheck.toggled.connect(self.kontraktSelected)
         self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKommune)
         self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKontrakt)
+        self.dlg.fylkeBox.currentIndexChanged.connect(self.fylkeBox_itemChanged)
+        self.dlg.kommuneBox.currentIndexChanged[str].connect(self.kommuneBox_itemChanged)
+        self.dlg.kontraktBox.currentIndexChanged[str].connect(self.kontraktBox_itemChanged)
         self.dlg.mergeButton.clicked.connect(self.mergeLayers)
         self.dlg.selectdirButton.clicked.connect(self.select_output_dir)
         self.dlg.kjorButton.clicked.connect(self.runTask)
@@ -145,13 +140,14 @@ class NvdbQgisPlugin:
                 action)
             self.iface.removeToolBarIcon(action)
 
-
     def select_oldDir(self):
         selectedDirOld = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
         self.dlg.lineEdit_dirOld.setText(selectedDirOld)
+
     def select_newDir(self):
         selectedDirNew = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
         self.dlg.lineEdit_dirNew.setText(selectedDirNew)
+
     def select_dirResult(self):
         output_dirResult = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
         self.dlg.lineEdit_dirResult.setText(output_dirResult)
@@ -173,24 +169,25 @@ class NvdbQgisPlugin:
         for filenameOld in os.listdir(selectedDirOld):
             if filenameOld.endswith(".csv"):
                 dirOldFiles.append(filenameOld)
-                #print(dirOldFiles)
+                # print(dirOldFiles)
             else:
                 print("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
 
         for filenameNew in os.listdir(selectedDirNew):
             if filenameNew.endswith(".csv"):
                 dirNewFiles.append(filenameNew)
-                #print(dirNewFiles)
+                # print(dirNewFiles)
             else:
                 print("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
 
-        #Sjekker etter filer som har samme nanv, de filene som ikke har same navn vil bli lagt i en liste og
-        #brukeren vil se hvilken filer som ikke ligger i sjekkmappen, diroldfiles.
+        # Sjekker etter filer som har samme nanv, de filene som ikke har same navn vil bli lagt i en liste og
+        # brukeren vil se hvilken filer som ikke ligger i sjekkmappen, diroldfiles.
         filter_listold = [string for string in dirOldFiles if string not in dirNewFiles]
         if not filter_listold:
             pass
         else:
-            #print('Disse filene: ', filter_listold, 'finnes ikke i sjekk mappen, disse vil bli fjernet fra sammenligningen.')
+            # print('Disse filene: ', filter_listold, 'finnes ikke i sjekk mappen, disse vil bli fjernet fra
+            # sammenligningen.')
             for i in filter_listold:
                 dirOldFiles.remove(i)
 
@@ -198,14 +195,15 @@ class NvdbQgisPlugin:
         if not filter_listnew:
             pass
         else:
-            #print('Disse filene: ', filter_listnew, 'finnes ikke i sjekk mappen, disse vil bli fjernet fra sammenligningen.')
+            # print('Disse filene: ', filter_listnew, 'finnes ikke i sjekk mappen, disse vil bli fjernet fra
+            # sammenligningen.')
 
             for i in filter_listnew:
                 dirNewFiles.remove(i)
 
         checkfile = []
         newcheck = []
-        fileResult = open(file_path,'w')
+        fileResult = open(file_path, 'w')
         for oldfile in dirOldFiles:
             checkfile.append(oldfile)
 
@@ -217,25 +215,29 @@ class NvdbQgisPlugin:
         for old, new in zip(checkfile, newcheck):
             print('{} {}'.format(old, new))
 
-            patch  = csvdiff.diff_files(selectedDirOld + '/' + old,
-                                        selectedDirNew + '/' + new,
-                                        ['nvdbid'])
-            #print(patch)
-            if patch["changed"]: #Om nøkkelen "changed" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
+            patch = csvdiff.diff_files(selectedDirOld + '/' + old,
+                                       selectedDirNew + '/' + new,
+                                       ['nvdbid'])
+            # print(patch)
+            if patch[
+                "changed"]:  # Om nøkkelen "changed" har en verdi vil den returnere true og gjennomføre utskriften
+                # til fileResult.
                 fileResult.write('\n' + "Endringer i fil: " + new + '\n')
                 for c in (patch['changed']):
                     fileResult.write(str(c) + '\n')
             else:
                 self.dlg.plainTextEdit.appendPlainText("Ingen felt er endret i filen: " + new)
 
-            if patch["removed"]:#Om nøkkelen "removed" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
+            if patch[
+                "removed"]:  # Om nøkkelen "removed" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
                 fileResult.write('\n' + "Objekter fjernet i fil: " + new + '\n')
                 for r in (patch['removed']):
                     fileResult.write(str(r) + '\n')
             else:
                 self.dlg.plainTextEdit.appendPlainText("Ingen objekter er fjernet i fil: " + new)
 
-            if patch["added"]:#Om nøkkelen "added" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
+            if patch[
+                "added"]:  # Om nøkkelen "added" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
                 fileResult.write('\n' + "Objekter lagt til i fil: " + new + '\n')
                 for a in (patch['added']):
                     fileResult.write(str(a) + '\n')
@@ -253,7 +255,7 @@ class NvdbQgisPlugin:
         options = QgsVectorFileWriter.SaveVectorOptions()
         options.driverName = "CSV"
 
-        #Henter filsti navn
+        # Henter filsti navn
         output_dir = self.dlg.lineEdit_dir.text().strip()
 
         for layer in self.iface.mapCanvas().layers():
@@ -264,27 +266,18 @@ class NvdbQgisPlugin:
                                                                    layer_filename + dmy,
                                                                    QgsCoordinateTransformContext(), options)
                 if writer[0]:
-                    self.iface.messageBar().pushMessage("NVDB Utskrift Error", "Klarte ikke å skrive ut: " + layer.name() + " Status: " + str(writer), level=Qgis.Critical)
+                    self.iface.messageBar().pushMessage("NVDB Utskrift Error",
+                                                        "Klarte ikke å skrive ut: " + layer.name() + " Status: " + str(
+                                                            writer), level=Qgis.Critical)
         self.dlg.plainTextEdit.appendPlainText('Utskrift fullført!')
 
     def select_output_dir(self):
         output_dir = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
         self.dlg.lineEdit_dir.setText(output_dir)
 
-    def individualSelected(self):
-        if self.dlg.individCheck.isChecked():
-            self.dlg.kommuneCheck.setEnabled(False)
-            self.dlg.kontraktCheck.setEnabled(False)
-            self.dlg.fylkeBox.setEnabled(False)
-            self.dlg.kommuneBox.setEnabled(False)
-            self.dlg.kontraktBox.setEnabled(False)
-        else:
-            self.dlg.kontraktCheck.setEnabled(True)
-            self.dlg.kommuneCheck.setEnabled(True)
-            self.dlg.fylkeBox.setEnabled(True)
-
     def kommuneSelected(self):
         if self.dlg.kommuneCheck.isChecked():
+            self.displayFilters()
             self.dlg.kommuneBox.setEnabled(True)
             self.dlg.kontraktCheck.setChecked(False)
             self.dlg.kontraktBox.setEnabled(False)
@@ -293,11 +286,28 @@ class NvdbQgisPlugin:
 
     def kontraktSelected(self):
         if self.dlg.kontraktCheck.isChecked():
+            self.displayFilters()
             self.dlg.kontraktBox.setEnabled(True)
             self.dlg.kommuneCheck.setChecked(False)
             self.dlg.kommuneBox.setEnabled(False)
         else:
             self.dlg.kontraktBox.setEnabled(False)
+
+    def fylkeBox_itemChanged(self):
+        self.displayFilters()
+
+    def kommuneBox_itemChanged(self, index):
+        self.dlg.textEdit.append("Kommune: " + index)
+        self.displayFilters()
+
+    def kontraktBox_itemChanged(self, index):
+        self.dlg.textEdit.append("Kontraktsområde: " + index)
+        self.displayFilters()
+
+    def vegsystemBox_itemChanged(self, index):
+        self.dlg.textEdit.append("Vegsystemreferanse: " + index)
+        selectedVegreferanse(index)
+        self.displayFilters()
 
     def comboBox_itemChanged(self, index):
         self.dlg.listWidgetObjects.clear()
@@ -308,10 +318,6 @@ class NvdbQgisPlugin:
         else:
             items = getObjInCat(index)
             self.dlg.listWidgetObjects.addItems(items)
-
-    def vegsystemBox_itemChanged(self, index):
-        self.dlg.textEdit.append("Vegsystemreferanse: " + index)
-        selectedVegreferanse(index)
 
     def addItem(self):
         all_items = self.dlg.listWidgetObjects.selectedItems()
@@ -343,17 +349,39 @@ class NvdbQgisPlugin:
         errorText += "</span>"
         self.dlg.textEdit.append(errorText)
 
+    def boldText(self, message):
+        boldText = "<span style=\" font-weight:bold;\" >"
+        boldText += message
+        boldText += "</span>"
+        return boldText
+
     def clearSelection(self):
         self.dlg.listWidgetObjects.clearSelection()
 
     def getKommune(self, index):
         self.dlg.textEdit.append("Fylke: " + index)
         self.dlg.kommuneBox.clear()
-        self.dlg.kommuneBox.addItems(getKommuneNavn(index))
+        kommune = getKommuneNavn(index)
+        self.dlg.kommuneBox.addItems(kommune)
 
     def getKontrakt(self, index):
         self.dlg.kontraktBox.clear()
         self.dlg.kontraktBox.addItems(getKontraktNavn(index))
+
+    def displayFilters(self):
+        self.dlg.searchEdit.clear()
+        if self.dlg.kommuneCheck.isChecked():
+            self.dlg.searchEdit.append(self.boldText("Kommune"))
+            self.dlg.searchEdit.append(self.dlg.kommuneBox.currentText())
+        if self.dlg.kontraktCheck.isChecked():
+            self.dlg.searchEdit.append(self.boldText("Kontraktsområde"))
+            self.dlg.searchEdit.append(self.dlg.kontraktBox.currentText())
+        else:
+            self.dlg.searchEdit.append(self.boldText("Fylke"))
+            self.dlg.searchEdit.append(self.dlg.fylkeBox.currentText())
+        self.dlg.searchEdit.append(" ")
+        self.dlg.searchEdit.append(self.boldText("Vegsystemreferanse"))
+        self.dlg.searchEdit.append(self.dlg.vegsystemBox.currentText())
 
     def mergeLayers(self):
         project = QgsProject.instance()
@@ -385,7 +413,7 @@ class NvdbQgisPlugin:
                     try:
                         processing.runAndLoadResults("qgis:mergevectorlayers", {'LAYERS': layerList,
                                                                                 'OUTPUT': completeLayerName + " " +
-                                                                                QgsWkbTypes.displayString(
+                                                                                          QgsWkbTypes.displayString(
                                                                                               currentLayerType)})
                     except QgsProcessingException:
                         completeLayerList = completeLayerList[:-2]
@@ -402,8 +430,6 @@ class NvdbQgisPlugin:
 
     def saveAsPreset(self):
         objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
-        areaType = None
-        area = None
         if self.dlg.kommuneCheck.isChecked():
             area = str(self.dlg.kommuneBox.currentText())
             areaType = "kommune"
@@ -414,7 +440,16 @@ class NvdbQgisPlugin:
             area = str(self.dlg.fylkeBox.currentText())
             areaType = "fylke"
         road = returnSelectedVegreferanse()
+        filename = self.dlg.nameField.text()
+        relPath = os.path.dirname(os.path.abspath(__file__))
+        presetPath = os.path.join(relPath, "presets")
+        path = os.path.join(presetPath, filename + ".txt")
+        file = open(path, "w")
+        file.write(str(objList) + ";" + areaType + ";" + area + ";" + road)
 
+    def loadPresets(self):
+        #self.dlg.searchView.setModel(returnObjectData()[1], returnAreaTypeData()[1], returnAreaData()[1], returnRoadData()[1])
+        print(returnPresetData())
 
     def runTask(self):
         pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
@@ -428,18 +463,17 @@ class NvdbQgisPlugin:
 
     def run(self):
         if self.first_start:
+            self.dlg.kommuneBox.setEnabled(False)
+            self.dlg.kontraktBox.setEnabled(False)
+            self.displayFilters()
             self.first_start = False
         self.dlg.comboBox.clear()
         self.dlg.comboBox.addItems(sortCategories())
         self.dlg.fylkeBox.addItems(getFylkeNavn())
-        self.dlg.kommuneBox.setEnabled(False)
-        self.dlg.kontraktBox.setEnabled(False)
-        self.dlg.filterButton.setEnabled(False)
-
-        self.openLayers = openLayers = QgsProject.instance().layerTreeRoot().children()
+        self.dlg.openLayers = openLayers = QgsProject.instance().layerTreeRoot().children()
         self.dlg.listWidget_layers.clear()
         self.dlg.listWidget_layers.addItems([layer.name() for layer in openLayers])
-
+        self.loadPresets()
         self.dlg.show()
         result = self.dlg.exec_()
         if result:

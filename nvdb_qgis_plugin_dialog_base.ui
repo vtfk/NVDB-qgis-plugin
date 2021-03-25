@@ -39,7 +39,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>3</number>
+    <number>2</number>
    </property>
    <widget class="QWidget" name="Objects">
     <attribute name="title">
@@ -301,27 +301,45 @@
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
-    <widget class="QTextEdit" name="filterEdit">
+    <widget class="Line" name="line_2">
      <property name="geometry">
       <rect>
-       <x>310</x>
+       <x>10</x>
+       <y>300</y>
+       <width>571</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="Search">
+    <attribute name="title">
+     <string>Lagrede søk</string>
+    </attribute>
+    <widget class="QTableView" name="searchView">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
        <y>30</y>
-       <width>261</width>
-       <height>261</height>
+       <width>561</width>
+       <height>161</height>
       </rect>
      </property>
     </widget>
-    <widget class="QLabel" name="label_10">
+    <widget class="QLabel" name="label_11">
      <property name="geometry">
       <rect>
-       <x>310</x>
+       <x>10</x>
        <y>10</y>
-       <width>121</width>
+       <width>131</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
-      <string>Foreløpig valgt filtrering</string>
+      <string>Velg søk</string>
      </property>
     </widget>
     <widget class="Line" name="line_2">
@@ -335,6 +353,49 @@
      </property>
      <property name="orientation">
       <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="saveButton">
+     <property name="geometry">
+      <rect>
+       <x>500</x>
+       <y>460</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Lagre søk</string>
+     </property>
+    </widget>
+    <widget class="QTextEdit" name="searchEdit">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>320</y>
+       <width>141</width>
+       <height>161</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QListWidget" name="objectsList_Search">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>320</y>
+       <width>141</width>
+       <height>161</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="nameField">
+     <property name="geometry">
+      <rect>
+       <x>380</x>
+       <y>460</y>
+       <width>113</width>
+       <height>20</height>
+      </rect>
      </property>
     </widget>
    </widget>
@@ -556,159 +617,11 @@
      </property>
     </widget>
    </widget>
-   <widget class="QWidget" name="Search">
-    <attribute name="title">
-     <string>Lagrede søk</string>
-    </attribute>
-    <widget class="QTableView" name="searchView">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>30</y>
-       <width>561</width>
-       <height>161</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_11">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>10</y>
-       <width>131</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Velg søk</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="searchButton">
-     <property name="geometry">
-      <rect>
-       <x>500</x>
-       <y>200</y>
-       <width>75</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Søk</string>
-     </property>
-    </widget>
-    <widget class="Line" name="line_3">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>240</y>
-       <width>561</width>
-       <height>20</height>
-      </rect>
-     </property>
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-    </widget>
-    <widget class="QLineEdit" name="lineEdit_2">
-     <property name="geometry">
-      <rect>
-       <x>370</x>
-       <y>450</y>
-       <width>113</width>
-       <height>20</height>
-      </rect>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="saveButton">
-     <property name="geometry">
-      <rect>
-       <x>500</x>
-       <y>450</y>
-       <width>75</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Lagre søk</string>
-     </property>
-    </widget>
-    <widget class="QListWidget" name="objectsList_Search">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>280</y>
-       <width>161</width>
-       <height>191</height>
-      </rect>
-     </property>
-     <property name="alternatingRowColors">
-      <bool>true</bool>
-     </property>
-     <property name="selectionMode">
-      <enum>QAbstractItemView::MultiSelection</enum>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_13">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>260</y>
-       <width>101</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Valgte vegobjekter</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_12">
-     <property name="geometry">
-      <rect>
-       <x>190</x>
-       <y>260</y>
-       <width>81</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Valgt filtrering</string>
-     </property>
-    </widget>
-    <widget class="QListWidget" name="filterList_Search">
-     <property name="geometry">
-      <rect>
-       <x>190</x>
-       <y>280</y>
-       <width>161</width>
-       <height>191</height>
-      </rect>
-     </property>
-     <property name="alternatingRowColors">
-      <bool>true</bool>
-     </property>
-     <property name="selectionMode">
-      <enum>QAbstractItemView::MultiSelection</enum>
-     </property>
-    </widget>
-    <widget class="QLabel" name="label_14">
-     <property name="geometry">
-      <rect>
-       <x>370</x>
-       <y>430</y>
-       <width>47</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Navn</string>
-     </property>
-    </widget>
-   </widget>
   </widget>
   <widget class="QPushButton" name="mergeButton">
    <property name="geometry">
     <rect>
-     <x>100</x>
+     <x>500</x>
      <y>550</y>
      <width>101</width>
      <height>23</height>
@@ -721,7 +634,7 @@
   <widget class="QPushButton" name="kjorButton">
    <property name="geometry">
     <rect>
-     <x>610</x>
+     <x>700</x>
      <y>550</y>
      <width>75</width>
      <height>23</height>

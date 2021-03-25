@@ -1,0 +1,1 @@
+['Belysningspunkt', 'Belysningsstrekning', 'Beredskapsveg', 'Bergrom', 'Bergsikring', 'Betongutstøping', 'Blomsterbeplantning'];fylke;Agder;F - Fylkesveg
