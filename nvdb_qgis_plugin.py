@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import os.path
 import os
+import sys
+
 from nvdbapiv3 import nvdbFagdata
 from qgis._core import QgsProject, QgsWkbTypes, QgsProcessingException
 from qgis.core import *
@@ -14,12 +16,11 @@ from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import QAction, QDockWidget
 
 
-from qgis.PyQt.QtWidgets import QAction, QFileDialog
+from qgis.PyQt.QtWidgets import QAction, QFileDialog, QApplication, QDialog, QProgressBar
 from PyQt5.QtWidgets import QListView, QMessageBox
 from PyQt5 import QtGui, QtCore
 
-import csvdiff
-import itertools as itools
+from .csvdiff import csvdiff
 from datetime import date
 
 # Initialize Qt resources from file resources.py
@@ -163,87 +164,98 @@ class NvdbQgisPlugin:
         selectedDirNew = self.dlg.lineEdit_dirNew.text().strip()
         selectedOutPutDir = self.dlg.lineEdit_dirResult.text().strip()
 
-        outputFilename = ('Resultat' + '_' + str(date.today()) + '.txt')
+        filnameInp = self.dlg.lineEdit_resNavn.text().strip()
 
-        file_path = os.path.join(selectedOutPutDir, outputFilename)
-        if not os.path.isdir(selectedOutPutDir):
-            os.makedirs(selectedOutPutDir)
+        if filnameInp:
+            outputFilename = ('Resultat' + '_' + filnameInp + '_' + str(date.today()) + '.txt')
 
-        for filenameOld in os.listdir(selectedDirOld):
-            if filenameOld.endswith(".csv"):
-                dirOldFiles.append(filenameOld)
-                #print(dirOldFiles)
+            file_path = os.path.join(selectedOutPutDir, outputFilename)
+            if not os.path.isdir(selectedOutPutDir):
+                os.makedirs(selectedOutPutDir)
+
+            for filenameOld in os.listdir(selectedDirOld):
+                if filenameOld.endswith(".csv"):
+                    dirOldFiles.append(filenameOld)
+                    # print(dirOldFiles)
+                else:
+                    print("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
+
+            for filenameNew in os.listdir(selectedDirNew):
+                if filenameNew.endswith(".csv"):
+                    dirNewFiles.append(filenameNew)
+
+                else:
+                    print("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
+
+            # Sjekker etter filer som har samme nanv, de filene som ikke har same navn vil bli lagt i en liste og
+            # brukeren vil se hvilken filer som ikke ligger i sjekkmappen, diroldfiles.
+            filter_listold = [string for string in dirOldFiles if string not in dirNewFiles]
+            if not filter_listold:
+                pass
             else:
-                print("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
+                print('Disse filene: ', filter_listold,
+                      'finnes ikke i sjekk mappen, disse vil bli fjernet fra sammenligningen.')
+                for i in filter_listold:
+                    dirOldFiles.remove(i)
 
-        for filenameNew in os.listdir(selectedDirNew):
-            if filenameNew.endswith(".csv"):
-                dirNewFiles.append(filenameNew)
-                #print(dirNewFiles)
+            filter_listnew = [string for string in dirNewFiles if string not in dirOldFiles]
+            if not filter_listnew:
+                pass
             else:
-                print("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
+                print('Disse filene: ', filter_listnew,
+                      'finnes ikke i sjekk mappen, disse vil bli fjernet fra sammenligningen.')
 
-        #Sjekker etter filer som har samme nanv, de filene som ikke har same navn vil bli lagt i en liste og
-        #brukeren vil se hvilken filer som ikke ligger i sjekkmappen, diroldfiles.
-        filter_listold = [string for string in dirOldFiles if string not in dirNewFiles]
-        if not filter_listold:
-            pass
+                for i in filter_listnew:
+                    dirNewFiles.remove(i)
+
+            checkfile = []
+            newcheck = []
+            fileResult = open(file_path, 'w')
+            for oldfile in dirOldFiles:
+                checkfile.append(oldfile)
+
+            for newfile in dirNewFiles:
+                newcheck.append(newfile)
+
+            fileResult.write("Resultat av sammenligning, " + "Dato: " + str(date.today()) + '\n')
+
+            for old, new in zip(checkfile, newcheck):
+                #print('{} {}'.format(old, new))
+
+                patch = csvdiff.diff_files(selectedDirOld + '/' + old,
+                                           selectedDirNew + '/' + new,
+                                           ['nvdbid'])
+                # print(patch)
+                if patch[
+                    "changed"]:  # Om nøkkelen "changed" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
+                    fileResult.write('\n' + "Endringer i fil: " + new + '\n')
+                    for c in (patch['changed']):
+                        fileResult.write(str(c) + '\n')
+                else:
+                    self.dlg.textEdit.append("Ingen felt er endret i filen: " + new)
+
+                if patch[
+                    "removed"]:  # Om nøkkelen "removed" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
+                    fileResult.write('\n' + "Objekter fjernet i fil: " + new + '\n')
+                    for r in (patch['removed']):
+                        fileResult.write(str(r) + '\n')
+                else:
+                    self.dlg.textEdit.append("Ingen objekter er fjernet i fil: " + new)
+
+                if patch[
+                    "added"]:  # Om nøkkelen "added" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
+                    fileResult.write('\n' + "Objekter lagt til i fil: " + new + '\n')
+                    for a in (patch['added']):
+                        fileResult.write(str(a) + '\n')
+                else:
+                    self.dlg.textEdit.append("Ingen objekter er lagt til i fil: " + new)
+
+                if patch:
+                    self.successMessage("Sammenligning av fil: " + new + " er ferdig")
+            fileResult.close()
+            self.successMessage("Navn på resultatfil: " + outputFilename)
         else:
-            #print('Disse filene: ', filter_listold, 'finnes ikke i sjekk mappen, disse vil bli fjernet fra sammenligningen.')
-            for i in filter_listold:
-                dirOldFiles.remove(i)
-
-        filter_listnew = [string for string in dirNewFiles if string not in dirOldFiles]
-        if not filter_listnew:
-            pass
-        else:
-            #print('Disse filene: ', filter_listnew, 'finnes ikke i sjekk mappen, disse vil bli fjernet fra sammenligningen.')
-
-            for i in filter_listnew:
-                dirNewFiles.remove(i)
-
-        checkfile = []
-        newcheck = []
-        fileResult = open(file_path,'w')
-        for oldfile in dirOldFiles:
-            checkfile.append(oldfile)
-
-        for newfile in dirNewFiles:
-            newcheck.append(newfile)
-
-        fileResult.write("Resultat av sammenligning, " + "Dato: " + str(date.today()) + '\n')
-
-        for old, new in zip(checkfile, newcheck):
-            print('{} {}'.format(old, new))
-
-            patch  = csvdiff.diff_files(selectedDirOld + '/' + old,
-                                        selectedDirNew + '/' + new,
-                                        ['nvdbid'])
-            #print(patch)
-            if patch["changed"]: #Om nøkkelen "changed" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
-                fileResult.write('\n' + "Endringer i fil: " + new + '\n')
-                for c in (patch['changed']):
-                    fileResult.write(str(c) + '\n')
-            else:
-                self.dlg.plainTextEdit.appendPlainText("Ingen felt er endret i filen: " + new)
-
-            if patch["removed"]:#Om nøkkelen "removed" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
-                fileResult.write('\n' + "Objekter fjernet i fil: " + new + '\n')
-                for r in (patch['removed']):
-                    fileResult.write(str(r) + '\n')
-            else:
-                self.dlg.plainTextEdit.appendPlainText("Ingen objekter er fjernet i fil: " + new)
-
-            if patch["added"]:#Om nøkkelen "added" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
-                fileResult.write('\n' + "Objekter lagt til i fil: " + new + '\n')
-                for a in (patch['added']):
-                    fileResult.write(str(a) + '\n')
-            else:
-                self.dlg.plainTextEdit.appendPlainText("Ingen objekter er lagt til i fil: " + new)
-
-            if patch:
-                self.dlg.plainTextEdit.appendPlainText("Sammenligning av fil: " + new + " er ferdig")
-        fileResult.close()
+            self.errorMessage("Du må gi filen et navn!")
 
     def exportLayers(self):
         today = date.today()
@@ -252,19 +264,33 @@ class NvdbQgisPlugin:
         options = QgsVectorFileWriter.SaveVectorOptions()
         options.driverName = "CSV"
 
-        #Henter filsti navn
-        output_dir = self.dlg.lineEdit_dir.text().strip()
+        #Henter filsti
+        output_dir_path = self.dlg.lineEdit_dir.text().strip()
+        output_dir_input = self.dlg.lineEdit_newDirName.text().strip()
 
-        for layer in self.iface.mapCanvas().layers():
-            if layer.type() == QgsMapLayer.VectorLayer:
-                self.dlg.plainTextEdit.appendPlainText('Skriver: ' + layer.name() + ' til CSV')
-                layer_filename = os.path.join(output_dir, layer.name())
-                writer = QgsVectorFileWriter.writeAsVectorFormatV2(layer,
-                                                                   layer_filename + dmy,
-                                                                   QgsCoordinateTransformContext(), options)
-                if writer[0]:
-                    self.iface.messageBar().pushMessage("NVDB Utskrift Error", "Klarte ikke å skrive ut: " + layer.name() + " Status: " + str(writer), level=Qgis.Critical)
-        self.dlg.plainTextEdit.appendPlainText('Utskrift fullført!')
+        if output_dir_input:
+            output_dir = (output_dir_path + '/' +output_dir_input + dmy)
+            print(output_dir)
+
+            try:
+                os.makedirs(output_dir)
+            except OSError:
+                self.errorMessage("Klarte ikke å lage ny mappe")
+            else:
+                for layer in self.iface.mapCanvas().layers():
+                    if layer.type() == QgsMapLayer.VectorLayer:
+
+                        self.dlg.textEdit.append('Skriver: ' + layer.name() + ' til CSV')
+                        layer_filename = os.path.join(output_dir, layer.name())
+                        writer = QgsVectorFileWriter.writeAsVectorFormatV2(layer,
+                                                                           layer_filename,
+                                                                           QgsCoordinateTransformContext(), options)
+                        self.successMessage("Utskrift av lag: " + layer.name() + " er fullført")
+                        if writer[0]:
+                            self.iface.messageBar().pushMessage("NVDB Utskrift Error", "Klarte ikke å skrive ut: " + layer.name() + " Status: " + str(writer), level=Qgis.Critical)
+                self.successMessage('Utskrift fullført!')
+        else:
+            self.errorMessage("Du må gi den nye mappen et navn!")
 
     def select_output_dir(self):
         output_dir = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
@@ -420,7 +446,7 @@ class NvdbQgisPlugin:
         self.dlg.fylkeBox.addItems(getFylkeNavn())
         self.dlg.kommuneBox.setEnabled(False)
         self.dlg.kontraktBox.setEnabled(False)
-        self.dlg.filterButton.setEnabled(False)
+
 
         self.openLayers = openLayers = QgsProject.instance().layerTreeRoot().children()
         self.dlg.listWidget_layers.clear()
