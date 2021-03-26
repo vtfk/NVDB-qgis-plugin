@@ -30,8 +30,8 @@ def diff_files(from_file, to_file, index_columns, sep=',', ignored_columns=None)
     Diff two CSV files, returning the patch which transforms one into the
     other.
     """
-    with open(from_file) as from_stream:
-        with open(to_file) as to_stream:
+    with open(from_file, encoding="ISO-8859-1") as from_stream:
+        with open(to_file, encoding="ISO-8859-1") as to_stream:
             from_records = records.load(from_stream, sep=sep)
             to_records = records.load(to_stream, sep=sep)
             return patch.create(from_records, to_records, index_columns,
