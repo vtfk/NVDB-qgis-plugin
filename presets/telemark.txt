@@ -1,1 +1,0 @@
-{'Belysningspunkt','Bergrom','Bergsikring'};'Fylke';'Vestfold og Telemark';'R'
