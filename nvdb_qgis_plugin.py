@@ -14,11 +14,11 @@ from .nvdbareas import *
 from .nvdbpresets import *
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import *
-from qgis.PyQt.QtWidgets import QAction, QDockWidget
+from qgis.PyQt.QtWidgets import QAction, QDockWidget, QTableWidgetItem
 
 
 from qgis.PyQt.QtWidgets import QAction, QFileDialog, QApplication, QDialog, QProgressBar
-from PyQt5.QtWidgets import QListView, QMessageBox
+from PyQt5.QtWidgets import QListView, QMessageBox, QTableWidget, QHeaderView
 from PyQt5 import QtGui, QtCore
 
 from .csvdiff import csvdiff
@@ -373,7 +373,7 @@ class NvdbQgisPlugin:
                 self.dlg.listWidget.takeItem(r)
 
     def successMessage(self, message):
-        successText = "<span style=\" color:#2ECC71;\" >"
+        successText = "<span style=\" color:#4cc27e;\" >"
         successText += message
         successText += "</span>"
         self.dlg.textEdit.append(successText)
@@ -482,10 +482,35 @@ class NvdbQgisPlugin:
         path = os.path.join(presetPath, filename + ".txt")
         file = open(path, "w")
         file.write(str(objList) + ";" + areaType + ";" + area + ";" + road)
+        file.close()
+        getAllPresetData()
+        self.loadPresets()
+        self.successMessage(filename + " lagret!")
+        self.dlg.nameField.clear()
 
     def loadPresets(self):
-        #self.dlg.searchView.setModel(returnObjectData()[1], returnAreaTypeData()[1], returnAreaData()[1], returnRoadData()[1])
-        print(returnPresetData())
+        objList = returnObjectData()
+        areaTypeList = returnAreaTypeData()
+        areaList = returnAreaData()
+        road = returnRoadData()
+        # Row count
+        self.dlg.searchTable.setRowCount(len(objList))
+        # Column count
+        self.dlg.searchTable.setColumnCount(4)
+        print(objList)
+        print(areaTypeList)
+        print(areaList)
+        print(road)
+        for i in range(len(road)):
+            self.dlg.searchTable.setItem(i, 0, QTableWidgetItem(objList[i]))
+            self.dlg.searchTable.setItem(i, 1, QTableWidgetItem(areaTypeList[i]))
+            self.dlg.searchTable.setItem(i, 2, QTableWidgetItem(areaList[i]))
+            self.dlg.searchTable.setItem(i, 3, QTableWidgetItem(road[i]))
+
+        # Table will fit the screen horizontally
+        self.dlg.searchTable.horizontalHeader().setStretchLastSection(True)
+        self.dlg.searchTable.horizontalHeader().setSectionResizeMode(
+            QHeaderView.Stretch)
 
     def runTask(self):
         pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
@@ -502,6 +527,7 @@ class NvdbQgisPlugin:
             self.dlg.kommuneBox.setEnabled(False)
             self.dlg.kontraktBox.setEnabled(False)
             self.displayFilters()
+            self.loadPresets()
             self.first_start = False
         self.dlg.comboBox.clear()
         self.dlg.comboBox.addItems(sortCategories())
@@ -509,7 +535,6 @@ class NvdbQgisPlugin:
         self.dlg.openLayers = openLayers = QgsProject.instance().layerTreeRoot().children()
         self.dlg.listWidget_layers.clear()
         self.dlg.listWidget_layers.addItems([layer.name() for layer in openLayers])
-        self.loadPresets()
         self.dlg.show()
         result = self.dlg.exec_()
         if result:

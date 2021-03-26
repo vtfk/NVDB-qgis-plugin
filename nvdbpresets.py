@@ -67,23 +67,49 @@ def getAllPresetData():
 
 
 def addPresetData(index):
-    pre.setPresets(index)
+    if pre.getPresets() is not None:
+        p = pre.getPresets()
+        p += index
+        pre.setPresets(p)
+    else:
+        pre.setPresets(index)
+
 
 
 def addObjectsData(index):
-    pre.setObjects(index)
+    if pre.getObjects() is not None:
+        o = pre.getObjects()
+        o += index
+        pre.setObjects(o)
+    else:
+        pre.setObjects(index)
 
 
 def addAreaTypeData(index):
-    pre.setAreaType(index)
+    if pre.getAreaType() is not None:
+        at = pre.getAreaType()
+        at += index
+        pre.setAreaType(at)
+    else:
+        pre.setAreaType(index)
 
 
 def addAreaData(index):
-    pre.setArea(index)
+    if pre.getArea() is not None:
+        a = pre.getArea()
+        a += index
+        pre.setArea(a)
+    else:
+        pre.setArea(index)
 
 
 def addRoadData(index):
-    pre.setRoad(index)
+    if pre.getRoad() is not None:
+        r = pre.getRoad()
+        r += index
+        pre.setRoad(r)
+    else:
+        pre.setRoad(index)
 
 
 def returnPresetData():
