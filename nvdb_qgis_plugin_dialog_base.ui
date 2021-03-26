@@ -616,9 +616,9 @@
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>20</y>
+       <y>30</y>
        <width>521</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -642,9 +642,9 @@
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>80</y>
+       <y>90</y>
        <width>521</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -668,9 +668,9 @@
      <property name="geometry">
       <rect>
        <x>30</x>
-       <y>230</y>
+       <y>240</y>
        <width>521</width>
-       <height>31</height>
+       <height>21</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_4">
