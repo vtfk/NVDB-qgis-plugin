@@ -100,6 +100,7 @@ class NvdbQgisPlugin:
         self.dlg.dirOldButton.clicked.connect(self.select_oldDir)
         self.dlg.dirNewButton.clicked.connect(self.select_newDir)
         self.dlg.dirResultButton.clicked.connect(self.select_dirResult)
+        self.dlg.mengdertilcsvButton.clicked.connect(self.getantall)
         self.dlg.skrivtilcsvButton.clicked.connect(self.exportLayers)
         self.dlg.compareButton.clicked.connect(self.comparefiles)
         self.dlg.comboBox.currentIndexChanged[str].connect(self.comboBox_itemChanged)
@@ -511,6 +512,33 @@ class NvdbQgisPlugin:
         self.dlg.searchTable.horizontalHeader().setStretchLastSection(True)
         self.dlg.searchTable.horizontalHeader().setSectionResizeMode(
             QHeaderView.Stretch)
+
+    def getantall(self):
+        objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
+        for item in objList:
+            item_id = getID(item)
+            item = nvdbFagdata(item_id)
+            if self.dlg.kommuneCheck.isChecked():
+                kommuneID = str(self.dlg.kommuneBox.currentText())
+                item.filter(kommuneID)
+                print(kommuneID)
+            elif self.dlg.kontraktCheck.isChecked():
+                kontraktID = str(self.dlg.kontraktBox.currentText())
+                item.filter(kontraktID)
+                print(kontraktID)
+            else:
+                fylkeID = str(self.dlg.fylkeBox.currentText())
+                item.filter(fylkeID)
+                print(fylkeID)
+            if returnSelectedVegreferanse() != "Alle":
+                item.filter(returnSelectedVegreferanse()[0])
+            print(item.statistikk())
+
+    def getlengdestrekning(self):
+        pass
+
+    def getareal(self):
+        pass
 
     def runTask(self):
         pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')

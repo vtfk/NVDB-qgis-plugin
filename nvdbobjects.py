@@ -18,7 +18,7 @@ def getRequest(req):
     return json.loads(response.text)
 
 def getAllObjectData():
-    mainReq = getRequest('https://nvdbapiles-v3.utv.atlas.vegvesen.no/vegobjekttyper')
+    mainReq = getRequest('https://nvdbapiles-v3.atlas.vegvesen.no/vegobjekttyper')
     nvdb.setCategoryData(mainReq)
 
 def returnCategoryData():
