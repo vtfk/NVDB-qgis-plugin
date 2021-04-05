@@ -1,1 +1,0 @@
-['Belysningspunkt', 'Bergrom', 'Bergsikring', 'Blomsterbeplantning', 'Bomstasjon', 'Branndetektor', 'Brannhendelse i tunnel', 'Brannslokkingsanlegg', 'Fiberduk'];fylke;Trøndelag;R - Riksveg

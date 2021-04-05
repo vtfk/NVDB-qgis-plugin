@@ -1,1 +1,0 @@
-['Mobiltelefonsamband', 'Tilstand/skade, trær', 'Undergrunn', 'Utgår_Fysisk tiltak', 'Utgår_Havarinisje', 'Utgår_Holdeplass'];kommune;Hole;F - Fylkesveg

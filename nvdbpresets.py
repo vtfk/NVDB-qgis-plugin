@@ -1,4 +1,6 @@
 import os
+
+
 class nvdbpresets:
     def __init__(self):
         self.presets = []
@@ -6,6 +8,7 @@ class nvdbpresets:
         self.areaType = []
         self.area = []
         self.road = []
+        self.name = []
 
     def getPresets(self):
         return self.presets
@@ -22,6 +25,9 @@ class nvdbpresets:
     def getRoad(self):
         return self.road
 
+    def getName(self):
+        return self.name
+
     def setPresets(self, p):
         self.presets = p
 
@@ -37,6 +43,9 @@ class nvdbpresets:
     def setRoad(self, r):
         self.road = r
 
+    def setName(self, n):
+        self.name = n
+
 
 pre = nvdbpresets()
 
@@ -49,6 +58,7 @@ def getAllPresetData():
     areaTypeList = []
     areaList = []
     roadList = []
+    nameList = []
     for file in os.listdir(presetPath):
         filepath = os.path.join(presetPath, file)
         f = open(filepath, "r")
@@ -59,11 +69,13 @@ def getAllPresetData():
         areaTypeList.append(infosplit[1])
         areaList.append(infosplit[2])
         roadList.append(infosplit[3])
+        nameList.append(file[:-4])
     addPresetData(presetList)
     addObjectsData(objectList)
     addAreaTypeData(areaTypeList)
     addAreaData(areaList)
     addRoadData(roadList)
+    addNameData(nameList)
 
 
 def addPresetData(index):
@@ -73,7 +85,6 @@ def addPresetData(index):
         pre.setPresets(p)
     else:
         pre.setPresets(index)
-
 
 
 def addObjectsData(index):
@@ -112,6 +123,15 @@ def addRoadData(index):
         pre.setRoad(index)
 
 
+def addNameData(index):
+    if pre.getName() is not None:
+        n = pre.getName()
+        n += index
+        pre.setName(n)
+    else:
+        pre.setName(index)
+
+
 def returnPresetData():
     return pre.getPresets()
 
@@ -130,3 +150,7 @@ def returnAreaData():
 
 def returnRoadData():
     return pre.getRoad()
+
+
+def returnNameData():
+    return pre.getName()

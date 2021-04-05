@@ -1,6 +1,7 @@
 import requests
 import json
 
+
 class nvdbobjects:
     def __init__(self):
         self.categories = None
@@ -11,15 +12,19 @@ class nvdbobjects:
     def setCategoryData(self, c):
         self.categories = c
 
+
 nvdb = nvdbobjects()
+
 
 def getRequest(req):
     response = requests.get(req)
     return json.loads(response.text)
 
+
 def getAllObjectData():
     mainReq = getRequest('https://nvdbapiles-v3.atlas.vegvesen.no/vegobjekttyper')
     nvdb.setCategoryData(mainReq)
+
 
 def returnCategoryData():
     return nvdb.getCategoryData()

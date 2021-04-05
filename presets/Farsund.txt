@@ -1,1 +1,0 @@
-['Avrettingslag', 'Avstandsmåling', 'Basseng/Magasin', 'Belysningspunkt', 'Belysningsstrekning'];kommune;Farsund;E - Europaveg

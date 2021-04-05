@@ -16,7 +16,6 @@ from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import QAction, QDockWidget, QTableWidgetItem
 
-
 from qgis.PyQt.QtWidgets import QAction, QFileDialog, QApplication, QDialog, QProgressBar
 from PyQt5.QtWidgets import QListView, QMessageBox, QTableWidget, QHeaderView
 from PyQt5 import QtGui, QtCore
@@ -119,6 +118,7 @@ class NvdbQgisPlugin:
         self.dlg.kjorButton.clicked.connect(self.runTask)
         self.dlg.saveButton.clicked.connect(self.saveAsPreset)
         self.dlg.vegsystemBox.currentIndexChanged[str].connect(self.vegsystemBox_itemChanged)
+        self.dlg.searchTable.doubleClicked.connect(self.searchPreset)
         getAllAreaData()
         getAllObjectData()
         getAllPresetData()
@@ -145,7 +145,6 @@ class NvdbQgisPlugin:
                 self.tr(u'&NVDB QGIS'),
                 action)
             self.iface.removeToolBarIcon(action)
-
 
     def select_oldDir(self):
         selectedDirOld = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
@@ -223,7 +222,7 @@ class NvdbQgisPlugin:
             fileResult.write("Resultat av sammenligning, " + "Dato: " + str(date.today()) + '\n')
 
             for old, new in zip(checkfile, newcheck):
-                #print('{} {}'.format(old, new))
+                # print('{} {}'.format(old, new))
 
                 patch = csvdiff.diff_files(selectedDirOld + '/' + old,
                                            selectedDirNew + '/' + new,
@@ -267,12 +266,12 @@ class NvdbQgisPlugin:
         options = QgsVectorFileWriter.SaveVectorOptions()
         options.driverName = "CSV"
 
-        #Henter filsti
+        # Henter filsti
         output_dir_path = self.dlg.lineEdit_dir.text().strip()
         output_dir_input = self.dlg.lineEdit_newDirName.text().strip()
 
         if output_dir_input:
-            output_dir = (output_dir_path + '/' +output_dir_input + dmy)
+            output_dir = (output_dir_path + '/' + output_dir_input + dmy)
             print(output_dir)
 
             try:
@@ -290,7 +289,9 @@ class NvdbQgisPlugin:
                                                                            QgsCoordinateTransformContext(), options)
                         self.successMessage("Utskrift av lag: " + layer.name() + " er fullført")
                         if writer[0]:
-                            self.iface.messageBar().pushMessage("NVDB Utskrift Error", "Klarte ikke å skrive ut: " + layer.name() + " Status: " + str(writer), level=Qgis.Critical)
+                            self.iface.messageBar().pushMessage("NVDB Utskrift Error",
+                                                                "Klarte ikke å skrive ut: " + layer.name() + " Status: " + str(
+                                                                    writer), level=Qgis.Critical)
                 self.successMessage('Utskrift fullført!')
         else:
             self.errorMessage("Du må gi den nye mappen et navn!")
@@ -490,6 +491,7 @@ class NvdbQgisPlugin:
         self.dlg.nameField.clear()
 
     def loadPresets(self):
+        nameList = returnNameData()
         objList = returnObjectData()
         areaTypeList = returnAreaTypeData()
         areaList = returnAreaData()
@@ -497,21 +499,40 @@ class NvdbQgisPlugin:
         # Row count
         self.dlg.searchTable.setRowCount(len(objList))
         # Column count
-        self.dlg.searchTable.setColumnCount(4)
-        print(objList)
-        print(areaTypeList)
-        print(areaList)
-        print(road)
+        self.dlg.searchTable.setColumnCount(5)
         for i in range(len(road)):
-            self.dlg.searchTable.setItem(i, 0, QTableWidgetItem(objList[i]))
-            self.dlg.searchTable.setItem(i, 1, QTableWidgetItem(areaTypeList[i]))
-            self.dlg.searchTable.setItem(i, 2, QTableWidgetItem(areaList[i]))
-            self.dlg.searchTable.setItem(i, 3, QTableWidgetItem(road[i]))
-
+            self.dlg.searchTable.setItem(i, 0, QTableWidgetItem(nameList[i]))
+            self.dlg.searchTable.setItem(i, 1, QTableWidgetItem(objList[i]))
+            self.dlg.searchTable.setItem(i, 2, QTableWidgetItem(areaTypeList[i]))
+            self.dlg.searchTable.setItem(i, 3, QTableWidgetItem(areaList[i]))
+            self.dlg.searchTable.setItem(i, 4, QTableWidgetItem(road[i]))
         # Table will fit the screen horizontally
         self.dlg.searchTable.horizontalHeader().setStretchLastSection(True)
         self.dlg.searchTable.horizontalHeader().setSectionResizeMode(
             QHeaderView.Stretch)
+
+    def searchPreset(self):
+        rowNumber = None
+        for i in self.dlg.searchTable.selectionModel().selectedIndexes():
+            rowNumber = i.row()
+        objList = self.dlg.searchTable.item(rowNumber, 1).text()
+        objList = objList[1:-1]
+        objList = objList.split(',')
+        areaType = self.dlg.searchTable.item(rowNumber, 2).text()
+        area = self.dlg.searchTable.item(rowNumber, 3).text()
+        road = self.dlg.searchTable.item(rowNumber, 4).text()
+        pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
+        if not pythonConsole or not pythonConsole.isVisible():
+            self.iface.actionShowPythonDialog().trigger()
+        for i in range(len(objList)):
+            if i == 0:
+                item = objList[i]
+            else:
+                item = objList[i][1:]
+            item = item[1:-1]
+            task = QgsTask.fromFunction("Henter: " + objList[i], getLayersFromPreset, on_finished=completed,
+                                        item=item, areaType=areaType, area=area, road=road)
+            self.tm.addTask(task)
 
     def getantall(self):
         objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
@@ -548,7 +569,6 @@ class NvdbQgisPlugin:
         for item in objList:
             task = QgsTask.fromFunction("Henter: " + item, getLayers, on_finished=completed, item=item, qtGui=self.dlg)
             self.tm.addTask(task)
-            self.dlg.listWidget.clear()
 
     def run(self):
         if self.first_start:
@@ -570,13 +590,6 @@ class NvdbQgisPlugin:
 
 
 def getLayers(task, item, qtGui):
-    """
-    Raises an exception to abort the task.
-    Returns a result if success.
-    The result will be passed, together with the exception (None in
-    the case of success), to the on_finished method.
-    If there is an exception, there will be no result.
-    """
     item_text = item
     item_id = getID(item)
     item = nvdbFagdata(item_id)
@@ -590,6 +603,29 @@ def getLayers(task, item, qtGui):
         item.filter({'fylke': fylkeID})
     if returnSelectedVegreferanse() != "Alle":
         item.filter({'vegsystemreferanse': [returnSelectedVegreferanse()[0]]})
+    if task.isCanceled():
+        stopped(task)
+        return None
+    # raise an exception to abort the task
+    if task == "Ikke test denne":
+        raise Exception('no pls')
+    return {'name': task, 'item': item, 'item_text': item_text}
+
+
+def getLayersFromPreset(task, item, areaType, area, road):
+    item_text = item
+    item_id = getID(item)
+    item = nvdbFagdata(item_id)
+    if areaType == "kommune":
+        kommuneID = getKommuneID(area)
+        item.filter({'kommune': kommuneID})
+    elif areaType == "kontraktsomrade":
+        item.filter({'kontraktsomrade': area})
+    else:
+        fylkeID = getFylkeID(area)
+        item.filter({'fylke': fylkeID})
+    if road != "Alle":
+        item.filter({'vegsystemreferanse': road[0]})
     if task.isCanceled():
         stopped(task)
         return None
