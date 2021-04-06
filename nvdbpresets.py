@@ -59,6 +59,12 @@ def getAllPresetData():
     areaList = []
     roadList = []
     nameList = []
+    pre.setPresets([])
+    pre.setObjects([])
+    pre.setAreaType([])
+    pre.setArea([])
+    pre.setRoad([])
+    pre.setName([])
     for file in os.listdir(presetPath):
         filepath = os.path.join(presetPath, file)
         f = open(filepath, "r")

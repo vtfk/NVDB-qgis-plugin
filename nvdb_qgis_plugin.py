@@ -119,6 +119,7 @@ class NvdbQgisPlugin:
         self.dlg.saveButton.clicked.connect(self.saveAsPreset)
         self.dlg.vegsystemBox.currentIndexChanged[str].connect(self.vegsystemBox_itemChanged)
         self.dlg.searchTable.doubleClicked.connect(self.searchPreset)
+        self.dlg.deleteButton.clicked.connect(self.deletePreset)
         getAllAreaData()
         getAllObjectData()
         getAllPresetData()
@@ -228,24 +229,24 @@ class NvdbQgisPlugin:
                                            selectedDirNew + '/' + new,
                                            ['nvdbid'])
                 # print(patch)
-                if patch[
-                    "changed"]:  # Om nøkkelen "changed" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
+                if patch["changed"]:  # Om nøkkelen "changed" har en verdi vil den returnere true og gjennomføre
+                    # utskriften til fileResult.
                     fileResult.write('\n' + "Endringer i fil: " + new + '\n')
                     for c in (patch['changed']):
                         fileResult.write(str(c) + '\n')
                 else:
                     self.dlg.textEdit.append("Ingen felt er endret i filen: " + new)
 
-                if patch[
-                    "removed"]:  # Om nøkkelen "removed" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
+                if patch["removed"]:  # Om nøkkelen "removed" har en verdi vil den returnere true og gjennomføre
+                    # utskriften til fileResult.
                     fileResult.write('\n' + "Objekter fjernet i fil: " + new + '\n')
                     for r in (patch['removed']):
                         fileResult.write(str(r) + '\n')
                 else:
                     self.dlg.textEdit.append("Ingen objekter er fjernet i fil: " + new)
 
-                if patch[
-                    "added"]:  # Om nøkkelen "added" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
+                if patch["added"]:  # Om nøkkelen "added" har en verdi vil den returnere true og gjennomføre utskriften
+                    # til fileResult.
                     fileResult.write('\n' + "Objekter lagt til i fil: " + new + '\n')
                     for a in (patch['added']):
                         fileResult.write(str(a) + '\n')
@@ -533,6 +534,20 @@ class NvdbQgisPlugin:
             task = QgsTask.fromFunction("Henter: " + objList[i], getLayersFromPreset, on_finished=completed,
                                         item=item, areaType=areaType, area=area, road=road)
             self.tm.addTask(task)
+
+    def deletePreset(self):
+        rowNumber = None
+        for i in self.dlg.searchTable.selectionModel().selectedIndexes():
+            rowNumber = i.row()
+        name = self.dlg.searchTable.item(rowNumber, 0).text()
+        relPath = os.path.dirname(os.path.abspath(__file__))
+        presetPath = os.path.join(relPath, "presets")
+        path = os.path.join(presetPath, name + ".txt")
+        os.remove(path)
+        self.dlg.searchTable.removeRow(rowNumber)
+        getAllPresetData()
+        self.loadPresets()
+        self.successMessage(name + " slettet.")
 
     def getantall(self):
         objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
