@@ -39,7 +39,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>0</number>
+    <number>5</number>
    </property>
    <widget class="QWidget" name="Objects">
     <attribute name="title">
@@ -800,6 +800,37 @@
        <widget class="QLineEdit" name="lineEdit_resNavn"/>
       </item>
      </layout>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tab_2">
+    <attribute name="title">
+     <string>Statistikk</string>
+    </attribute>
+    <widget class="QTableWidget" name="statsTable">
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>20</y>
+       <width>561</width>
+       <height>361</height>
+      </rect>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="testBtn">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>420</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>test</string>
+     </property>
     </widget>
    </widget>
   </widget>
