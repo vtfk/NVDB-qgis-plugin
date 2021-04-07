@@ -808,7 +808,7 @@ class nvdbFagdata(nvdbVegnett):
         fagdata = self.nesteForekomst()
         if fagdata: 
             fagobj = nvdbFagObjekt(fagdata)
-            return( fagobj)
+            return(fagobj)
         else: 
             return None
         
@@ -991,11 +991,11 @@ class nvdbFagObjekt():
 
         stedfesting_eller_assosiasjon = [ 'Stedfesting', 'Liste' ]
 
-        if egenskap and egenskap != empty and egenskap['egenskapstype'] not in stedfesting_eller_assosiasjon: 
+        if egenskap and egenskap != empty and egenskap['egenskapstype'] not in stedfesting_eller_assosiasjon:
             return egenskap['verdi']
         elif egenskap and egenskap != empty and egenskap['egenskapstype'] in stedfesting_eller_assosiasjon:
             return json.dumps( egenskap, indent=4, ensure_ascii=False)
-        else: 
+        else:
             return egenskap
 
     def enumverdi( self, id_or_navn, empty=None): 
