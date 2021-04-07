@@ -1,1 +1,0 @@
-['Armeringsnett', 'Artsrik vegkant', 'Avkjørsel', 'Avkjørsel, holdningsklasse', 'Avrettingslag', 'Avstandsmåling', 'Basseng/Magasin', 'Belysningspunkt', 'Belysningsstrekning', 'Beredskapsveg', 'Bergrom', 'Bergsikring', 'Betongutstøping', 'Blomsterbeplantning', 'Bomstasjon', 'Branndetektor'];kommune;Hasvik;F - Fylkesveg

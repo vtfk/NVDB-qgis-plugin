@@ -18,7 +18,6 @@ from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import QAction, QDockWidget, QTableWidgetItem
 from collections import namedtuple
 
-
 from qgis.PyQt.QtWidgets import QAction, QFileDialog, QApplication, QDialog, QProgressBar
 from PyQt5.QtWidgets import QListView, QMessageBox, QTableWidget, QHeaderView
 from PyQt5 import QtGui, QtCore
@@ -121,6 +120,8 @@ class NvdbQgisPlugin:
         self.dlg.kjorButton.clicked.connect(self.runTask)
         self.dlg.saveButton.clicked.connect(self.saveAsPreset)
         self.dlg.vegsystemBox.currentIndexChanged[str].connect(self.vegsystemBox_itemChanged)
+        self.dlg.searchTable.doubleClicked.connect(self.searchPreset)
+        self.dlg.deleteButton.clicked.connect(self.deletePreset)
         getAllAreaData()
         getAllObjectData()
         getAllPresetData()
@@ -147,7 +148,6 @@ class NvdbQgisPlugin:
                 self.tr(u'&NVDB QGIS'),
                 action)
             self.iface.removeToolBarIcon(action)
-
 
     def select_oldDir(self):
         selectedDirOld = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
@@ -491,6 +491,7 @@ class NvdbQgisPlugin:
         self.dlg.nameField.clear()
 
     def loadPresets(self):
+        nameList = returnNameData()
         objList = returnObjectData()
         areaTypeList = returnAreaTypeData()
         areaList = returnAreaData()
@@ -498,30 +499,64 @@ class NvdbQgisPlugin:
         # Row count
         self.dlg.searchTable.setRowCount(len(objList))
         # Column count
+        self.dlg.searchTable.setColumnCount(5)
         self.dlg.searchTable.setColumnCount(4)
-        #print(objList)
-        #print(areaTypeList)
-        #print(areaList)
-        #print(road)
         for i in range(len(road)):
-            self.dlg.searchTable.setItem(i, 0, QTableWidgetItem(objList[i]))
-            self.dlg.searchTable.setItem(i, 1, QTableWidgetItem(areaTypeList[i]))
-            self.dlg.searchTable.setItem(i, 2, QTableWidgetItem(areaList[i]))
-            self.dlg.searchTable.setItem(i, 3, QTableWidgetItem(road[i]))
-
+            self.dlg.searchTable.setItem(i, 0, QTableWidgetItem(nameList[i]))
+            self.dlg.searchTable.setItem(i, 1, QTableWidgetItem(objList[i]))
+            self.dlg.searchTable.setItem(i, 2, QTableWidgetItem(areaTypeList[i]))
+            self.dlg.searchTable.setItem(i, 3, QTableWidgetItem(areaList[i]))
+            self.dlg.searchTable.setItem(i, 4, QTableWidgetItem(road[i]))
         # Table will fit the screen horizontally
         self.dlg.searchTable.horizontalHeader().setStretchLastSection(True)
         self.dlg.searchTable.horizontalHeader().setSectionResizeMode(
             QHeaderView.Stretch)
 
+    def searchPreset(self):
+        rowNumber = None
+        for i in self.dlg.searchTable.selectionModel().selectedIndexes():
+            rowNumber = i.row()
+        objList = self.dlg.searchTable.item(rowNumber, 1).text()
+        objList = objList[1:-1]
+        objList = objList.split(',')
+        areaType = self.dlg.searchTable.item(rowNumber, 2).text()
+        area = self.dlg.searchTable.item(rowNumber, 3).text()
+        road = self.dlg.searchTable.item(rowNumber, 4).text()
+        pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
+        if not pythonConsole or not pythonConsole.isVisible():
+            self.iface.actionShowPythonDialog().trigger()
+        for i in range(len(objList)):
+            if i == 0:
+                item = objList[i]
+            else:
+                item = objList[i][1:]
+            item = item[1:-1]
+            task = QgsTask.fromFunction("Henter: " + objList[i], getLayersFromPreset, on_finished=completed,
+                                        item=item, areaType=areaType, area=area, road=road)
+            self.tm.addTask(task)
+
+    def deletePreset(self):
+        rowNumber = None
+        for i in self.dlg.searchTable.selectionModel().selectedIndexes():
+            rowNumber = i.row()
+        name = self.dlg.searchTable.item(rowNumber, 0).text()
+        relPath = os.path.dirname(os.path.abspath(__file__))
+        presetPath = os.path.join(relPath, "presets")
+        path = os.path.join(presetPath, name + ".txt")
+        os.remove(path)
+        self.dlg.searchTable.removeRow(rowNumber)
+        getAllPresetData()
+        self.loadPresets()
+        self.successMessage(name + " slettet.")
+
     def getStats(self):
         objList = [str(self.dlg.listWidget_layers.item(i).text()) for i in range(self.dlg.listWidget_layers.count())]
-        valueList, indexList, antallList, lengdeList, areallist, itemlist, arealsum, data, namelist, statslist, rnonelist  = [], [], [], [], [], [], [], [], [], [], []
-        colnavn = namedtuple('colnavn',['Objekt', 'Antall', 'Lengde', 'Areal'])
+        valueList, indexList, antallList, lengdeList, areallist, itemlist, arealsum, data, namelist, statslist, rnonelist = [], [], [], [], [], [], [], [], [], [], []
+        colnavn = namedtuple('colnavn', ['Objekt', 'Antall', 'Lengde', 'Areal'])
         filename = 'mengdetest.csv'
 
         with open(filename, 'w', newline='', encoding='utf8') as fm:
-            writer = csv.writer(fm, delimiter = ',')
+            writer = csv.writer(fm, delimiter=',')
             writer.writerow(colnavn._fields)
             for itemname in objList:
                 namelist.append(itemname)
@@ -563,17 +598,17 @@ class NvdbQgisPlugin:
             start = 0
             i = 0
             for antall, lengde in zip(antallList, lengdeList):
-                #print('{} {}'.format(antall[1], lengde[1]))
+                # print('{} {}'.format(antall[1], lengde[1]))
                 for a in range(1, len(antall)):
                     value = antall[a]
-                    arealsum = areallist[start:start+value]
+                    arealsum = areallist[start:start + value]
                     start += value
                 rnone = [0 if x is None else x for x in arealsum]
                 rnonelist.append(sum(rnone))
                 if rnone is not None:
                     a = sum(rnone)
                     data.append(namelist[i])
-                    i+=1
+                    i += 1
                     data.append(antall[1])
                     data.append(lengde[1])
                     data.append(a)
@@ -585,7 +620,6 @@ class NvdbQgisPlugin:
 
         statslist = [namelist, antallList, lengdeList, rnonelist]
         return statslist
-
 
     def stat(self):
         stats = self.getStats()
@@ -599,7 +633,6 @@ class NvdbQgisPlugin:
         for item in objList:
             task = QgsTask.fromFunction("Henter: " + item, getLayers, on_finished=completed, item=item, qtGui=self.dlg)
             self.tm.addTask(task)
-            self.dlg.listWidget.clear()
 
     def run(self):
         if self.first_start:
@@ -641,6 +674,29 @@ def getLayers(task, item, qtGui):
         item.filter({'fylke': fylkeID})
     if returnSelectedVegreferanse() != "Alle":
         item.filter({'vegsystemreferanse': [returnSelectedVegreferanse()[0]]})
+    if task.isCanceled():
+        stopped(task)
+        return None
+    # raise an exception to abort the task
+    if task == "Ikke test denne":
+        raise Exception('no pls')
+    return {'name': task, 'item': item, 'item_text': item_text}
+
+
+def getLayersFromPreset(task, item, areaType, area, road):
+    item_text = item
+    item_id = getID(item)
+    item = nvdbFagdata(item_id)
+    if areaType == "kommune":
+        kommuneID = getKommuneID(area)
+        item.filter({'kommune': kommuneID})
+    elif areaType == "kontraktsomrade":
+        item.filter({'kontraktsomrade': area})
+    else:
+        fylkeID = getFylkeID(area)
+        item.filter({'fylke': fylkeID})
+    if road != "Alle":
+        item.filter({'vegsystemreferanse': road[0]})
     if task.isCanceled():
         stopped(task)
         return None
