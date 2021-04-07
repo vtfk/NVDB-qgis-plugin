@@ -46,7 +46,7 @@ def getRequest(req):
     return json.loads(response.text)
 
 def getAllAreaData():
-    mainReq = getRequest('https://nvdbapiles-v3.utv.atlas.vegvesen.no/omrader')
+    mainReq = getRequest('https://nvdbapiles-v3.atlas.vegvesen.no/omrader')
     reqList = []
 
     for obj in mainReq:

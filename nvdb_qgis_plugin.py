@@ -2,6 +2,7 @@
 import os.path
 import os
 import sys
+import csv
 
 from nvdbapiv3 import nvdbFagdata
 from qgis._core import QgsProject, QgsWkbTypes, QgsProcessingException
@@ -15,6 +16,7 @@ from .nvdbpresets import *
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import QAction, QDockWidget, QTableWidgetItem
+from collections import namedtuple
 
 
 from qgis.PyQt.QtWidgets import QAction, QFileDialog, QApplication, QDialog, QProgressBar
@@ -100,6 +102,7 @@ class NvdbQgisPlugin:
         self.dlg.dirOldButton.clicked.connect(self.select_oldDir)
         self.dlg.dirNewButton.clicked.connect(self.select_newDir)
         self.dlg.dirResultButton.clicked.connect(self.select_dirResult)
+        self.dlg.mengdertilcsvButton.clicked.connect(self.getStats)
         self.dlg.skrivtilcsvButton.clicked.connect(self.exportLayers)
         self.dlg.compareButton.clicked.connect(self.comparefiles)
         self.dlg.comboBox.currentIndexChanged[str].connect(self.comboBox_itemChanged)
@@ -223,11 +226,9 @@ class NvdbQgisPlugin:
 
             for old, new in zip(checkfile, newcheck):
                 #print('{} {}'.format(old, new))
-
                 patch = csvdiff.diff_files(selectedDirOld + '/' + old,
                                            selectedDirNew + '/' + new,
                                            ['nvdbid'])
-                # print(patch)
                 if patch[
                     "changed"]:  # Om nøkkelen "changed" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
                     fileResult.write('\n' + "Endringer i fil: " + new + '\n')
@@ -359,6 +360,7 @@ class NvdbQgisPlugin:
         for i in range(len(all_items)):
             self.dlg.listWidget.addItem(all_items[i].text())
             self.dlg.objectsList_Search.addItem(all_items[i].text())
+            self.dlg.listWidget_layers.addItem(all_items[i].text())
             self.dlg.textEdit.append("Lagt til " + all_items[i].text())
         self.dlg.listWidgetObjects.clearSelection()
 
@@ -497,10 +499,10 @@ class NvdbQgisPlugin:
         self.dlg.searchTable.setRowCount(len(objList))
         # Column count
         self.dlg.searchTable.setColumnCount(4)
-        print(objList)
-        print(areaTypeList)
-        print(areaList)
-        print(road)
+        #print(objList)
+        #print(areaTypeList)
+        #print(areaList)
+        #print(road)
         for i in range(len(road)):
             self.dlg.searchTable.setItem(i, 0, QTableWidgetItem(objList[i]))
             self.dlg.searchTable.setItem(i, 1, QTableWidgetItem(areaTypeList[i]))
@@ -511,6 +513,83 @@ class NvdbQgisPlugin:
         self.dlg.searchTable.horizontalHeader().setStretchLastSection(True)
         self.dlg.searchTable.horizontalHeader().setSectionResizeMode(
             QHeaderView.Stretch)
+
+    def getStats(self):
+        objList = [str(self.dlg.listWidget_layers.item(i).text()) for i in range(self.dlg.listWidget_layers.count())]
+        valueList, indexList, antallList, lengdeList, areallist, itemlist, arealsum, data, namelist, statslist, rnonelist  = [], [], [], [], [], [], [], [], [], [], []
+        colnavn = namedtuple('colnavn',['Objekt', 'Antall', 'Lengde', 'Areal'])
+        filename = 'mengdetest.csv'
+
+        with open(filename, 'w', newline='', encoding='utf8') as fm:
+            writer = csv.writer(fm, delimiter = ',')
+            writer.writerow(colnavn._fields)
+            for itemname in objList:
+                namelist.append(itemname)
+                item_id = getID(itemname)
+                item = nvdbFagdata(item_id)
+                if self.dlg.kommuneCheck.isChecked():
+                    kommuneID = getKommuneID(str(self.dlg.kommuneBox.currentText()))
+                    item.filter({'kommune': kommuneID})
+                elif self.dlg.kontraktCheck.isChecked():
+                    kontraktID = str(self.dlg.kontraktBox.currentText())
+                    item.filter({'kontraktsomrade': kontraktID})
+                else:
+                    fylkeID = getFylkeID(str(self.dlg.fylkeBox.currentText()))
+                    item.filter({'fylke': fylkeID})
+                if returnSelectedVegreferanse() != "Alle":
+                    item.filter({'vegsystemreferanse': [returnSelectedVegreferanse()[0]]})
+                for v in item.statistikk().items():
+                    valueList.append(v)
+                itemlist.append(item)
+
+            for itemobj in itemlist:
+                while itemobj is not None:
+                    areal = itemobj.nesteNvdbFagObjekt()
+                    if areal is None:
+                        break
+                    else:
+                        areallist.append(areal.egenskapverdi('Areal'))
+                        continue
+                else:
+                    break
+
+            for i in valueList:
+                indexList.append(i)
+            for a in range(0, len(indexList), 2):
+                antallList.append(valueList[a])
+            for l in range(1, len(indexList), 2):
+                lengdeList.append(valueList[l])
+
+            start = 0
+            i = 0
+            for antall, lengde in zip(antallList, lengdeList):
+                #print('{} {}'.format(antall[1], lengde[1]))
+                for a in range(1, len(antall)):
+                    value = antall[a]
+                    arealsum = areallist[start:start+value]
+                    start += value
+                rnone = [0 if x is None else x for x in arealsum]
+                rnonelist.append(sum(rnone))
+                if rnone is not None:
+                    a = sum(rnone)
+                    data.append(namelist[i])
+                    i+=1
+                    data.append(antall[1])
+                    data.append(lengde[1])
+                    data.append(a)
+                    writer.writerow(data)
+                    data.clear()
+                else:
+                    pass
+        fm.close()
+
+        statslist = [namelist, antallList, lengdeList, rnonelist]
+        return statslist
+
+
+    def stat(self):
+        stats = self.getStats()
+        print(stats)
 
     def runTask(self):
         pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
@@ -534,7 +613,7 @@ class NvdbQgisPlugin:
         self.dlg.fylkeBox.addItems(getFylkeNavn())
         self.dlg.openLayers = openLayers = QgsProject.instance().layerTreeRoot().children()
         self.dlg.listWidget_layers.clear()
-        self.dlg.listWidget_layers.addItems([layer.name() for layer in openLayers])
+        #self.dlg.listWidget_layers.addItems([layer.name() for layer in openLayers])
         self.dlg.show()
         result = self.dlg.exec_()
         if result:

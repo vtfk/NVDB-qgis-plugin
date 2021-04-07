@@ -497,9 +497,9 @@
     <widget class="QWidget" name="horizontalLayoutWidget">
      <property name="geometry">
       <rect>
-       <x>180</x>
-       <y>140</y>
-       <width>391</width>
+       <x>190</x>
+       <y>30</y>
+       <width>381</width>
        <height>25</height>
       </rect>
      </property>
@@ -526,7 +526,7 @@
      <property name="geometry">
       <rect>
        <x>180</x>
-       <y>120</y>
+       <y>10</y>
        <width>47</width>
        <height>13</height>
       </rect>
@@ -535,24 +535,11 @@
       <string>Velg filsti</string>
      </property>
     </widget>
-    <widget class="QProgressBar" name="progressBar_export">
-     <property name="geometry">
-      <rect>
-       <x>180</x>
-       <y>280</y>
-       <width>401</width>
-       <height>23</height>
-      </rect>
-     </property>
-     <property name="value">
-      <number>24</number>
-     </property>
-    </widget>
     <widget class="QPushButton" name="skrivtilcsvButton">
      <property name="geometry">
       <rect>
-       <x>340</x>
-       <y>320</y>
+       <x>330</x>
+       <y>120</y>
        <width>75</width>
        <height>23</height>
       </rect>
@@ -566,16 +553,19 @@
       <rect>
        <x>10</x>
        <y>30</y>
-       <width>161</width>
-       <height>441</height>
+       <width>171</width>
+       <height>391</height>
       </rect>
+     </property>
+     <property name="selectionMode">
+      <enum>QAbstractItemView::MultiSelection</enum>
      </property>
     </widget>
     <widget class="QLineEdit" name="lineEdit_newDirName">
      <property name="geometry">
       <rect>
-       <x>180</x>
-       <y>210</y>
+       <x>190</x>
+       <y>90</y>
        <width>131</width>
        <height>20</height>
       </rect>
@@ -584,8 +574,8 @@
     <widget class="QLabel" name="label_13">
      <property name="geometry">
       <rect>
-       <x>180</x>
-       <y>190</y>
+       <x>190</x>
+       <y>70</y>
        <width>131</width>
        <height>16</height>
       </rect>
@@ -593,6 +583,58 @@
      <property name="text">
       <string>Gi den nye mappen et navn</string>
      </property>
+    </widget>
+    <widget class="Line" name="line_4">
+     <property name="geometry">
+      <rect>
+       <x>180</x>
+       <y>170</y>
+       <width>401</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="mengdertilcsvButton">
+     <property name="geometry">
+      <rect>
+       <x>330</x>
+       <y>300</y>
+       <width>121</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Skriv ut mengder</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="horizontalLayoutWidget_5">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>430</y>
+       <width>171</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <item>
+       <widget class="QPushButton" name="markering_button">
+        <property name="text">
+         <string>Fjern markering</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="pushButton">
+        <property name="text">
+         <string>Fjern Lag</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </widget>
    <widget class="QWidget" name="tab_4">
@@ -618,7 +660,7 @@
        <x>30</x>
        <y>30</y>
        <width>521</width>
-       <height>21</height>
+       <height>25</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -644,7 +686,7 @@
        <x>30</x>
        <y>90</y>
        <width>521</width>
-       <height>21</height>
+       <height>25</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -670,7 +712,7 @@
        <x>30</x>
        <y>240</y>
        <width>521</width>
-       <height>21</height>
+       <height>25</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout_4">
