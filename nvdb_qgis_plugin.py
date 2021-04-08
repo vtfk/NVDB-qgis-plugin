@@ -698,11 +698,6 @@ class NvdbQgisPlugin:
             areaList = areaList[amountList[i]:]
 
 
-        print(names)
-        print(amountList)
-        print(lenghtList)
-        print(areaTotalList)
-
         # Row count
         self.dlg.statsTable.setRowCount(len(names)+1)
         # Column count
@@ -722,6 +717,10 @@ class NvdbQgisPlugin:
         self.dlg.statsTable.horizontalHeader().setStretchLastSection(True)
         self.dlg.statsTable.horizontalHeader().setSectionResizeMode(
             QHeaderView.Stretch)
+        self.successMessage("Viser statistikk for layers innenfor " + data[1] + ":")
+        self.successMessage(data[0])
+        self.successMessage("Vegsystemreferanse:")
+        self.successMessage(data[2])
 
     def getLayerNames(self):
         project = QgsProject.instance()
