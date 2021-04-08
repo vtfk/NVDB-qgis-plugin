@@ -125,6 +125,7 @@ class CSVType(click.ParamType):
               help='a comma seperated list of columns to ignore from the comparison')
 @click.option('--significance', type=int,
               help='Ignore numeric changes less than this number of significant figures')
+
 def csvdiff_cmd(index_columns, from_csv, to_csv, style=None, output=None,
                 sep=',', quiet=False, ignore_columns=None, significance=None):
     """
@@ -226,6 +227,7 @@ def _summarize_diff(diff, orig_size, stream=sys.stdout):
 @click.option('--strict/--no-strict', default=True,
               help='Whether or not to tolerate a changed source document '
                    '(default: strict)')
+
 def csvpatch_cmd(input_csv, input=None, output=None, strict=True):
     """
     Apply the changes from a csvdiff patch to an existing CSV file.
