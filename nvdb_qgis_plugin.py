@@ -13,6 +13,7 @@ from nvdbapiV3qgis3 import nvdbsok2qgis
 from .nvdbobjects import *
 from .nvdbareas import *
 from .nvdbpresets import *
+from .lastsearch import *
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import QAction, QDockWidget, QTableWidgetItem
@@ -29,7 +30,9 @@ from .resources import *
 # Import the code for the dialog
 from .nvdb_qgis_plugin_dialog import NvdbQgisPluginDialog
 
+
 class NvdbQgisPlugin:
+
     def __init__(self, iface):
         # Save reference to the QGIS interface
         self.dlg = NvdbQgisPluginDialog()
@@ -124,6 +127,7 @@ class NvdbQgisPlugin:
         self.dlg.vegsystemBox.currentIndexChanged[str].connect(self.vegsystemBox_itemChanged)
         self.dlg.searchTable.doubleClicked.connect(self.searchPreset)
         self.dlg.deleteButton.clicked.connect(self.deletePreset)
+        self.dlg.statsButton.clicked.connect(self.loadStats)
         getAllAreaData()
         getAllObjectData()
         getAllPresetData()
@@ -173,23 +177,8 @@ class NvdbQgisPlugin:
 
         filnameInp = self.dlg.lineEdit_resNavn.text().strip()
 
-        colcheck = self.comp_checkbox_handler_nvdbid(), self.comp_checkbox_handler_free(), self.comp_checkbox_handler_object()
-        i = 0
-        col = ''
-        while colcheck[i] is None:
-            i += 1
-            if i == 3:
-                print("Du må velge en checkbox!")
-                break
-        else:
-            if colcheck[i] == 'nvdbid' or 'Objekt' or (str(self.dlg.lineEdit_fritekst.text().strip())):
-                col = colcheck[i]
-
-        print(col)
-
-
         if filnameInp:
-            outputFilename = ('Resultat' + '_' + filnameInp + '_' + str(date.today()) + '.csv')
+            outputFilename = ('Resultat' + '_' + filnameInp + '_' + str(date.today()) + '.txt')
 
             file_path = os.path.join(selectedOutPutDir, outputFilename)
             if not os.path.isdir(selectedOutPutDir):
@@ -316,46 +305,6 @@ class NvdbQgisPlugin:
     def select_output_dir(self):
         output_dir = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
         self.dlg.lineEdit_dir.setText(output_dir)
-
-    def comp_checkbox_handler_nvdbid(self):
-        col = ''
-        if self.dlg.checkBox_nvdbid.isChecked() is True:
-            self.dlg.checkBox_objekt.setEnabled(False)
-            self.dlg.checkBox_fritekst.setEnabled(False)
-            col = 'nvdbid'
-            return col
-        if self.dlg.checkBox_nvdbid.isChecked() is False:
-            self.dlg.checkBox_objekt.setEnabled(True)
-            self.dlg.checkBox_fritekst.setEnabled(True)
-
-
-    def comp_checkbox_handler_object(self):
-        col = ''
-        if self.dlg.checkBox_objekt.isChecked() is True:
-            self.dlg.checkBox_nvdbid.setEnabled(False)
-            self.dlg.checkBox_fritekst.setEnabled(False)
-            col = 'Objekt'
-            return col
-        if self.dlg.checkBox_objekt.isChecked() is False:
-            self.dlg.checkBox_nvdbid.setEnabled(True)
-            self.dlg.checkBox_fritekst.setEnabled(True)
-
-
-    def comp_checkbox_handler_free(self):
-        col = ''
-        if self.dlg.checkBox_fritekst.isChecked() is True:
-            self.dlg.checkBox_nvdbid.setEnabled(False)
-            self.dlg.checkBox_objekt.setEnabled(False)
-            if self.dlg.lineEdit_fritekst.text().strip() is '':
-                self.errorMessage("Du må angi en kollone som skal brukes for sammenligning i filene")
-                self.dlg.lineEdit_fritekst.setText("Angi en kollone!")
-            else:
-                col = (str(self.dlg.lineEdit_fritekst.text().strip()))
-                return col
-        if self.dlg.checkBox_fritekst.isChecked() is False:
-            self.dlg.checkBox_nvdbid.setEnabled(True)
-            self.dlg.checkBox_objekt.setEnabled(True)
-
 
     def individualSelected(self):
         if self.dlg.individCheck.isChecked():
@@ -558,7 +507,6 @@ class NvdbQgisPlugin:
         self.dlg.searchTable.setRowCount(len(objList))
         # Column count
         self.dlg.searchTable.setColumnCount(5)
-        self.dlg.searchTable.setColumnCount(4)
         for i in range(len(road)):
             self.dlg.searchTable.setItem(i, 0, QTableWidgetItem(nameList[i]))
             self.dlg.searchTable.setItem(i, 1, QTableWidgetItem(objList[i]))
@@ -580,6 +528,7 @@ class NvdbQgisPlugin:
         areaType = self.dlg.searchTable.item(rowNumber, 2).text()
         area = self.dlg.searchTable.item(rowNumber, 3).text()
         road = self.dlg.searchTable.item(rowNumber, 4).text()
+        setLastSearch(area, areaType, road)
         pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
         if not pythonConsole or not pythonConsole.isVisible():
             self.iface.actionShowPythonDialog().trigger()
@@ -704,7 +653,107 @@ class NvdbQgisPlugin:
         stats = self.getStats()
         print(stats)
 
+    def loadStats(self):
+        names = self.getLayerNames()
+        data = getLastSearch()
+        valueList, itemList, amountList, lenghtList, areaList, areaTotalList  = [], [], [], [], [], []
+
+        self.dlg.statsLabel.setText(data[0] + " " + data[1] + " " + data[2])
+
+        for i in names:
+            item_id = getID(i)
+            item = nvdbFagdata(item_id)
+            if data[1] == "kommune":
+                kommuneID = getKommuneID(data[0])
+                item.filter({'kommune': kommuneID})
+            elif data[1] == "kontraktsomrade":
+                item.filter({'kontraktsomrade': data[0]})
+            else:
+                fylkeID = getFylkeID(data[0])
+                item.filter({'fylke': fylkeID})
+            if data[2] != "Alle":
+                item.filter({'vegsystemreferanse': [data[2][0]]})
+            for v in item.statistikk().items():
+                valueList.append(v)
+            itemList.append(item)
+
+            for itemobj in itemList:
+                while itemobj is not None:
+                    area = itemobj.nesteNvdbFagObjekt()
+                    if area is None:
+                        break
+                    else:
+                        areaList.append(area.egenskapverdi('Areal'))
+                        continue
+                else:
+                    print("TEST")
+                    break
+
+        for i in range(len(valueList)):
+            v = valueList[i]
+            if v[0] == "antall":
+                amountList.append(v[1])
+            else:
+                lenghtList.append(v[1])
+
+        for i in range(len(amountList)):
+            areaTotal = 0
+            for u in range(amountList[i]):
+                if areaList[u] is not None:
+                    areaTotal+=areaList[u]
+                else:
+                    pass
+            areaTotalList.append(areaTotal)
+            areaList = areaList[amountList[i]:]
+
+
+        # Row count
+        self.dlg.statsTable.setRowCount(len(names)+1)
+        # Column count
+        self.dlg.statsTable.setColumnCount(4)
+        self.dlg.statsTable.setItem(0, 0, QTableWidgetItem("Navn"))
+        self.dlg.statsTable.setItem(0, 1, QTableWidgetItem("Mengde"))
+        self.dlg.statsTable.setItem(0, 2, QTableWidgetItem("Lengde"))
+        self.dlg.statsTable.setItem(0, 3, QTableWidgetItem("Areal"))
+        for i in range(len(names)+1):
+            if i == len(names):
+                break
+            self.dlg.statsTable.setItem(i+1, 0, QTableWidgetItem(names[i]))
+            self.dlg.statsTable.setItem(i+1, 1, QTableWidgetItem(str(amountList[i])))
+            self.dlg.statsTable.setItem(i+1, 2, QTableWidgetItem(str(round(int(lenghtList[i])))))
+            self.dlg.statsTable.setItem(i+1, 3, QTableWidgetItem(str(round(int(areaTotalList[i])))))
+        # Table will fit the screen horizontally
+        self.dlg.statsTable.horizontalHeader().setStretchLastSection(True)
+        self.dlg.statsTable.horizontalHeader().setSectionResizeMode(
+            QHeaderView.Stretch)
+        self.successMessage("Viser statistikk for layers innenfor " + data[1] + ":")
+        self.successMessage(data[0])
+        self.successMessage("Vegsystemreferanse:")
+        self.successMessage(data[2])
+
+    def getLayerNames(self):
+        project = QgsProject.instance()
+        nameList = []
+        for id, layer in project.mapLayers().items():
+            nameList.append(layer.name())
+        for i in range(len(nameList)):
+            if nameList[i][-3:] == "_2d" or nameList[i][-3:] == "_3d":
+                nameList[i] = nameList[i][:-3]
+        nameList = list(dict.fromkeys(nameList))
+        return nameList
+
+
     def runTask(self):
+        if self.dlg.kommuneCheck.isChecked():
+            area = getKommuneID(str(self.dlg.kommuneBox.currentText()))
+            areaType = "kommune"
+        elif self.dlg.kontraktCheck.isChecked():
+            area = str(self.dlg.kontraktBox.currentText())
+            areaType = "kontraktsomrade"
+        else:
+            area = getFylkeID(str(self.dlg.fylkeBox.currentText()))
+            areaType = "fylke"
+        setLastSearch(area, areaType, returnSelectedVegreferanse())
         pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
         if not pythonConsole or not pythonConsole.isVisible():
             self.iface.actionShowPythonDialog().trigger()
