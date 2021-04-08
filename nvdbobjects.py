@@ -40,7 +40,7 @@ def getNames():
         name = obj['navn']
         nameList.append(name)
 
-    return sorted(nameList)
+    return nameList
 
 
 """Henter kategorier"""
