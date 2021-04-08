@@ -122,6 +122,7 @@ class NvdbQgisPlugin:
         self.dlg.vegsystemBox.currentIndexChanged[str].connect(self.vegsystemBox_itemChanged)
         self.dlg.searchTable.doubleClicked.connect(self.searchPreset)
         self.dlg.deleteButton.clicked.connect(self.deletePreset)
+        self.dlg.statsButton.clicked.connect(self.loadStats)
         getAllAreaData()
         getAllObjectData()
         getAllPresetData()
@@ -500,7 +501,6 @@ class NvdbQgisPlugin:
         self.dlg.searchTable.setRowCount(len(objList))
         # Column count
         self.dlg.searchTable.setColumnCount(5)
-        self.dlg.searchTable.setColumnCount(4)
         for i in range(len(road)):
             self.dlg.searchTable.setItem(i, 0, QTableWidgetItem(nameList[i]))
             self.dlg.searchTable.setItem(i, 1, QTableWidgetItem(objList[i]))
@@ -624,6 +624,36 @@ class NvdbQgisPlugin:
     def stat(self):
         stats = self.getStats()
         print(stats)
+
+    def loadStats(self):
+        stats = self.getStats()
+        nameList = stats[0]
+        amountList = (stats[1])
+        lenghtList = (stats[2])
+        areaList = stats[3]
+        amountList = [x[1] for x in amountList]
+        lenghtList = [x[1] for x in lenghtList]
+        print(nameList)
+        print(amountList)
+        print(lenghtList)
+        print(areaList)
+        # Row count
+        self.dlg.statsTable.setRowCount(len(nameList)+1)
+        # Column count
+        self.dlg.statsTable.setColumnCount(4)
+        self.dlg.statsTable.setItem(0, 0, QTableWidgetItem("Navn"))
+        self.dlg.statsTable.setItem(0, 1, QTableWidgetItem("Mengde"))
+        self.dlg.statsTable.setItem(0, 2, QTableWidgetItem("Lengde"))
+        self.dlg.statsTable.setItem(0, 3, QTableWidgetItem("Areal"))
+        for i in range(len(nameList)+1):
+            self.dlg.statsTable.setItem(i+1, 0, QTableWidgetItem(nameList[i]))
+            self.dlg.statsTable.setItem(i+1, 1, QTableWidgetItem(str(amountList[i])))
+            self.dlg.statsTable.setItem(i+1, 2, QTableWidgetItem(str(round(int(lenghtList[i])))))
+            self.dlg.statsTable.setItem(i+1, 3, QTableWidgetItem(str(round(int(areaList[i])))))
+        # Table will fit the screen horizontally
+        self.dlg.statsTable.horizontalHeader().setStretchLastSection(True)
+        self.dlg.statsTable.horizontalHeader().setSectionResizeMode(
+            QHeaderView.Stretch)
 
     def runTask(self):
         pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
