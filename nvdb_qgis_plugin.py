@@ -13,6 +13,7 @@ from nvdbapiV3qgis3 import nvdbsok2qgis
 from .nvdbobjects import *
 from .nvdbareas import *
 from .nvdbpresets import *
+from .lastsearch import *
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import *
 from qgis.PyQt.QtWidgets import QAction, QDockWidget, QTableWidgetItem
@@ -524,6 +525,7 @@ class NvdbQgisPlugin:
         areaType = self.dlg.searchTable.item(rowNumber, 2).text()
         area = self.dlg.searchTable.item(rowNumber, 3).text()
         road = self.dlg.searchTable.item(rowNumber, 4).text()
+        setLastSearch(area, areaType, road)
         pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
         if not pythonConsole or not pythonConsole.isVisible():
             self.iface.actionShowPythonDialog().trigger()
@@ -643,36 +645,107 @@ class NvdbQgisPlugin:
         print(stats)
 
     def loadStats(self):
-        stats = self.getStats()
-        nameList = stats[0]
-        amountList = (stats[1])
-        lenghtList = (stats[2])
-        areaList = stats[3]
-        amountList = [x[1] for x in amountList]
-        lenghtList = [x[1] for x in lenghtList]
-        print(nameList)
+        names = self.getLayerNames()
+        data = getLastSearch()
+        valueList, itemList, amountList, lenghtList, areaList, areaTotalList  = [], [], [], [], [], []
+
+        self.dlg.statsLabel.setText(data[0] + " " + data[1] + " " + data[2])
+
+        for i in names:
+            item_id = getID(i)
+            item = nvdbFagdata(item_id)
+            if data[1] == "kommune":
+                kommuneID = getKommuneID(data[0])
+                item.filter({'kommune': kommuneID})
+            elif data[1] == "kontraktsomrade":
+                item.filter({'kontraktsomrade': data[0]})
+            else:
+                fylkeID = getFylkeID(data[0])
+                item.filter({'fylke': fylkeID})
+            if data[2] != "Alle":
+                item.filter({'vegsystemreferanse': [data[2][0]]})
+            for v in item.statistikk().items():
+                valueList.append(v)
+            itemList.append(item)
+
+            for itemobj in itemList:
+                while itemobj is not None:
+                    area = itemobj.nesteNvdbFagObjekt()
+                    if area is None:
+                        break
+                    else:
+                        areaList.append(area.egenskapverdi('Areal'))
+                        continue
+                else:
+                    print("TEST")
+                    break
+
+        for i in range(len(valueList)):
+            v = valueList[i]
+            if v[0] == "antall":
+                amountList.append(v[1])
+            else:
+                lenghtList.append(v[1])
+
+        for i in range(len(amountList)):
+            areaTotal = 0
+            for u in range(amountList[i]):
+                if areaList[u] is not None:
+                    areaTotal+=areaList[u]
+                else:
+                    pass
+            areaTotalList.append(areaTotal)
+            areaList = areaList[amountList[i]:]
+
+
+        print(names)
         print(amountList)
         print(lenghtList)
-        print(areaList)
+        print(areaTotalList)
+
         # Row count
-        self.dlg.statsTable.setRowCount(len(nameList)+1)
+        self.dlg.statsTable.setRowCount(len(names)+1)
         # Column count
         self.dlg.statsTable.setColumnCount(4)
         self.dlg.statsTable.setItem(0, 0, QTableWidgetItem("Navn"))
         self.dlg.statsTable.setItem(0, 1, QTableWidgetItem("Mengde"))
         self.dlg.statsTable.setItem(0, 2, QTableWidgetItem("Lengde"))
         self.dlg.statsTable.setItem(0, 3, QTableWidgetItem("Areal"))
-        for i in range(len(nameList)+1):
-            self.dlg.statsTable.setItem(i+1, 0, QTableWidgetItem(nameList[i]))
+        for i in range(len(names)+1):
+            if i == len(names):
+                break
+            self.dlg.statsTable.setItem(i+1, 0, QTableWidgetItem(names[i]))
             self.dlg.statsTable.setItem(i+1, 1, QTableWidgetItem(str(amountList[i])))
             self.dlg.statsTable.setItem(i+1, 2, QTableWidgetItem(str(round(int(lenghtList[i])))))
-            self.dlg.statsTable.setItem(i+1, 3, QTableWidgetItem(str(round(int(areaList[i])))))
+            self.dlg.statsTable.setItem(i+1, 3, QTableWidgetItem(str(round(int(areaTotalList[i])))))
         # Table will fit the screen horizontally
         self.dlg.statsTable.horizontalHeader().setStretchLastSection(True)
         self.dlg.statsTable.horizontalHeader().setSectionResizeMode(
             QHeaderView.Stretch)
 
+    def getLayerNames(self):
+        project = QgsProject.instance()
+        nameList = []
+        for id, layer in project.mapLayers().items():
+            nameList.append(layer.name())
+        for i in range(len(nameList)):
+            if nameList[i][-3:] == "_2d" or nameList[i][-3:] == "_3d":
+                nameList[i] = nameList[i][:-3]
+        nameList = list(dict.fromkeys(nameList))
+        return nameList
+
+
     def runTask(self):
+        if self.dlg.kommuneCheck.isChecked():
+            area = getKommuneID(str(self.dlg.kommuneBox.currentText()))
+            areaType = "kommune"
+        elif self.dlg.kontraktCheck.isChecked():
+            area = str(self.dlg.kontraktBox.currentText())
+            areaType = "kontraktsomrade"
+        else:
+            area = getFylkeID(str(self.dlg.fylkeBox.currentText()))
+            areaType = "fylke"
+        setLastSearch(area, areaType, returnSelectedVegreferanse())
         pythonConsole = self.iface.mainWindow().findChild(QDockWidget, 'PythonConsole')
         if not pythonConsole or not pythonConsole.isVisible():
             self.iface.actionShowPythonDialog().trigger()
