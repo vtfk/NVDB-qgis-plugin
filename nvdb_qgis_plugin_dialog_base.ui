@@ -534,15 +534,19 @@
     <widget class="QWidget" name="horizontalLayoutWidget">
      <property name="geometry">
       <rect>
-       <x>180</x>
+       <x>190</x>
        <y>30</y>
-       <width>391</width>
+       <width>381</width>
        <height>25</height>
       </rect>
      </property>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QLineEdit" name="lineEdit_dir"/>
+       <widget class="QLineEdit" name="lineEdit_dir">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
       </item>
       <item>
        <widget class="QPushButton" name="selectdirButton">
@@ -562,7 +566,7 @@
     <widget class="QLabel" name="label_8">
      <property name="geometry">
       <rect>
-       <x>180</x>
+       <x>190</x>
        <y>10</y>
        <width>47</width>
        <height>13</height>
@@ -575,14 +579,14 @@
     <widget class="QPushButton" name="skrivtilcsvButton">
      <property name="geometry">
       <rect>
-       <x>330</x>
+       <x>320</x>
        <y>120</y>
-       <width>75</width>
+       <width>101</width>
        <height>23</height>
       </rect>
      </property>
      <property name="text">
-      <string>Skriv til CSV</string>
+      <string>Skriv ut attributter</string>
      </property>
     </widget>
     <widget class="QListWidget" name="listWidget_layers">
@@ -624,9 +628,9 @@
     <widget class="Line" name="line_4">
      <property name="geometry">
       <rect>
-       <x>180</x>
+       <x>190</x>
        <y>170</y>
-       <width>401</width>
+       <width>391</width>
        <height>20</height>
       </rect>
      </property>
@@ -637,14 +641,82 @@
     <widget class="QPushButton" name="mengdertilcsvButton">
      <property name="geometry">
       <rect>
-       <x>330</x>
-       <y>300</y>
+       <x>320</x>
+       <y>320</y>
        <width>121</width>
        <height>23</height>
       </rect>
      </property>
      <property name="text">
       <string>Skriv ut mengder</string>
+     </property>
+    </widget>
+    <widget class="QWidget" name="horizontalLayoutWidget_5">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>210</y>
+       <width>381</width>
+       <height>25</height>
+      </rect>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <item>
+       <widget class="QLineEdit" name="lineEdit_dir_m">
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="selectdir_MButton">
+        <property name="maximumSize">
+         <size>
+          <width>75</width>
+          <height>23</height>
+         </size>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+    <widget class="QLabel" name="label_19">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>190</y>
+       <width>47</width>
+       <height>13</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Velg filsti</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_20">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>260</y>
+       <width>131</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Gi den nye filen et navn</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_fileNameM">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>280</y>
+       <width>131</width>
+       <height>20</height>
+      </rect>
      </property>
     </widget>
    </widget>
