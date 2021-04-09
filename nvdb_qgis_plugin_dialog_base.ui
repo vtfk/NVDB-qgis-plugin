@@ -728,7 +728,7 @@
      <property name="geometry">
       <rect>
        <x>230</x>
-       <y>330</y>
+       <y>290</y>
        <width>75</width>
        <height>23</height>
       </rect>
@@ -875,6 +875,58 @@
        <widget class="QLineEdit" name="lineEdit_resNavn"/>
       </item>
      </layout>
+    </widget>
+    <widget class="QCheckBox" name="checkBox_nvdbid">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>160</y>
+       <width>70</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Nvdbid</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBox_objekt">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>160</y>
+       <width>70</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Objekt</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="checkBox_fritekst">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>160</y>
+       <width>70</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Fritekst</string>
+     </property>
+     <property name="tristate">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="lineEdit_fritekst">
+     <property name="geometry">
+      <rect>
+       <x>400</x>
+       <y>180</y>
+       <width>113</width>
+       <height>20</height>
+      </rect>
+     </property>
     </widget>
    </widget>
    <widget class="QWidget" name="tab_2">

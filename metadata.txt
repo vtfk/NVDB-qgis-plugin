@@ -7,7 +7,7 @@ name=NVDB QGIS
 qgisMinimumVersion=3.0
 description=Fetch data from nvdb and visualize it in QGIS
 version=0.1
-author=Erlend Ellefsen
+author=Erlend Ellefsen & Robin Ellingsen
 email=ekbe_97@hotmail.no
 
 about=Get data from NVDB. Filter the data to your liking and display it as layers in QGIS
@@ -37,7 +37,8 @@ deprecated=False
 # Since QGIS 3.8, a comma separated list of plugins to be installed
 # (or upgraded) can be specified.
 # Check the documentation for more information.
-# plugin_dependencies=
+#plugin_dependencies=
+
 
 Category of the plugin: Raster, Vector, Database or Web
 # category=

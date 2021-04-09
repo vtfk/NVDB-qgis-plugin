@@ -111,6 +111,9 @@ class NvdbQgisPlugin:
         self.dlg.removeButton.clicked.connect(self.removeItem)
         self.dlg.clearButton.clicked.connect(self.clearSelection)
         self.dlg.kommuneCheck.toggled.connect(self.kommuneSelected)
+        self.dlg.checkBox_fritekst.toggled.connect(self.comp_checkbox_handler_free)
+        self.dlg.checkBox_nvdbid.toggled.connect(self.comp_checkbox_handler_nvdbid)
+        self.dlg.checkBox_objekt.toggled.connect(self.comp_checkbox_handler_object)
         self.dlg.kontraktCheck.toggled.connect(self.kontraktSelected)
         self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKommune)
         self.dlg.fylkeBox.currentIndexChanged[str].connect(self.getKontrakt)
@@ -231,7 +234,7 @@ class NvdbQgisPlugin:
                 #print('{} {}'.format(old, new))
                 patch = csvdiff.diff_files(selectedDirOld + '/' + old,
                                            selectedDirNew + '/' + new,
-                                           ['nvdbid']) #Denne må endres slik at det kan bli universalt, på en eller annen måte. Bruker input?
+                                           [col])
                 if patch[
                     "changed"]:  # Om nøkkelen "changed" har en verdi vil den returnere true og gjennomføre utskriften til fileResult.
                     fileResult.write('\n' + "Endringer i fil: " + new + '\n')
@@ -275,11 +278,11 @@ class NvdbQgisPlugin:
         output_dir_input = self.dlg.lineEdit_newDirName.text().strip()
 
         if output_dir_input and output_dir_path:
-            output_dir = (output_dir_path + '/' +output_dir_input + dmy)
+            output_dir = (output_dir_path + '/' + output_dir_input + dmy)
             try:
                 os.makedirs(output_dir)
             except OSError:
-                self.errorMessage("Klarte ikke å lagre ny fil")
+                self.errorMessage("Klarte ikke å lagre ny mappe")
             else:
                 for layer in self.iface.mapCanvas().layers():
                     if layer.type() == QgsMapLayer.VectorLayer:
@@ -294,7 +297,7 @@ class NvdbQgisPlugin:
                             self.iface.messageBar().pushMessage("NVDB Utskrift Error", "Klarte ikke å skrive ut: " + layer.name() + " Status: " + str(writer), level=Qgis.Critical)
                 self.successMessage('Utskrift fullført!')
         elif not output_dir_input:
-            self.errorMessage("Du må gi den nye filen et navn!")
+            self.errorMessage("Du må gi den nye mappen et navn!")
         elif not output_dir_path:
             self.errorMessage("Du må velge en filsti!")
 
@@ -553,71 +556,77 @@ class NvdbQgisPlugin:
         userin_file_name = self.dlg.lineEdit_fileNameM.text().strip()
 
         if userin_file_name and output_dir_path:
-            filename = os.path.join(output_dir_path + '/' + userin_file_name + today + '.csv')
-            print(filename)
-            with open(filename, 'w', newline='', encoding='utf8') as fm:
-                writer = csv.writer(fm, delimiter=',')
-                writer.writerow(colnavn._fields)
-                for itemname in objList:
-                    namelist.append(itemname)
-                    item_id = getID(itemname)
-                    item = nvdbFagdata(item_id)
-                    if self.dlg.kommuneCheck.isChecked():
-                        kommuneID = getKommuneID(str(self.dlg.kommuneBox.currentText()))
-                        item.filter({'kommune': kommuneID})
-                    elif self.dlg.kontraktCheck.isChecked():
-                        kontraktID = str(self.dlg.kontraktBox.currentText())
-                        item.filter({'kontraktsomrade': kontraktID})
-                    else:
-                        fylkeID = getFylkeID(str(self.dlg.fylkeBox.currentText()))
-                        item.filter({'fylke': fylkeID})
-                    if returnSelectedVegreferanse() != "Alle":
-                        item.filter({'vegsystemreferanse': [returnSelectedVegreferanse()[0]]})
-                    for v in item.statistikk().items():
-                        valueList.append(v)
-                    itemlist.append(item)
-
-                for itemobj in itemlist:
-                    while itemobj is not None:
-                        areal = itemobj.nesteNvdbFagObjekt()
-                        if areal is None:
-                            break
+            output_dir = (output_dir_path + '/' + 'Mengder_' + today)
+            try:
+                os.makedirs(output_dir)
+            except OSError:
+                self.errorMessage("Klarte ikke å lage nye mappe")
+            else:
+                filename = os.path.join(output_dir + '/' + userin_file_name + '.csv')
+                print(filename)
+                with open(filename, 'w', newline='', encoding='utf8') as fm:
+                    writer = csv.writer(fm, delimiter=',')
+                    writer.writerow(colnavn._fields)
+                    for itemname in objList:
+                        namelist.append(itemname)
+                        item_id = getID(itemname)
+                        item = nvdbFagdata(item_id)
+                        if self.dlg.kommuneCheck.isChecked():
+                            kommuneID = getKommuneID(str(self.dlg.kommuneBox.currentText()))
+                            item.filter({'kommune': kommuneID})
+                        elif self.dlg.kontraktCheck.isChecked():
+                            kontraktID = str(self.dlg.kontraktBox.currentText())
+                            item.filter({'kontraktsomrade': kontraktID})
                         else:
-                            areallist.append(areal.egenskapverdi('Areal'))
-                            continue
-                    else:
-                        break
+                            fylkeID = getFylkeID(str(self.dlg.fylkeBox.currentText()))
+                            item.filter({'fylke': fylkeID})
+                        if returnSelectedVegreferanse() != "Alle":
+                            item.filter({'vegsystemreferanse': [returnSelectedVegreferanse()[0]]})
+                        for v in item.statistikk().items():
+                            valueList.append(v)
+                        itemlist.append(item)
 
-                for i in valueList:
-                    indexList.append(i)
-                for a in range(0, len(indexList), 2):
-                    antallList.append(valueList[a])
-                for l in range(1, len(indexList), 2):
-                    lengdeList.append(valueList[l])
+                    for itemobj in itemlist:
+                        while itemobj is not None:
+                            areal = itemobj.nesteNvdbFagObjekt()
+                            if areal is None:
+                                break
+                            else:
+                                areallist.append(areal.egenskapverdi('Areal'))
+                                continue
+                        else:
+                            break
 
-                start = 0
-                i = 0
-                for antall, lengde in zip(antallList, lengdeList):
-                    # print('{} {}'.format(antall[1], lengde[1]))
-                    for a in range(1, len(antall)):
-                        value = antall[a]
-                        arealsum = areallist[start:start + value]
-                        start += value
-                        rnone = [0 if x is None else x for x in arealsum]
-                        rnonelist.append(sum(rnone))
-                    if rnone is not None:
-                        a = sum(rnone)
-                        data.append(namelist[i])
-                        i += 1
-                        data.append(antall[1])
-                        data.append(lengde[1])
-                        data.append(a)
-                        writer.writerow(data)
-                        data.clear()
-                    else:
-                        pass
-            fm.close()
-            self.successMessage('Utskrift fullført!')
+                    for i in valueList:
+                        indexList.append(i)
+                    for a in range(0, len(indexList), 2):
+                        antallList.append(valueList[a])
+                    for l in range(1, len(indexList), 2):
+                        lengdeList.append(valueList[l])
+
+                    start = 0
+                    i = 0
+                    for antall, lengde in zip(antallList, lengdeList):
+                        # print('{} {}'.format(antall[1], lengde[1]))
+                        for a in range(1, len(antall)):
+                            value = antall[a]
+                            arealsum = areallist[start:start + value]
+                            start += value
+                            rnone = [0 if x is None else x for x in arealsum]
+                            rnonelist.append(sum(rnone))
+                        if rnone is not None:
+                            a = sum(rnone)
+                            data.append(namelist[i])
+                            i += 1
+                            data.append(antall[1])
+                            data.append(lengde[1])
+                            data.append(a)
+                            writer.writerow(data)
+                            data.clear()
+                        else:
+                            pass
+                fm.close()
+                self.successMessage('Utskrift fullført!')
         elif not userin_file_name:
             self.errorMessage("Du må gi filen et navn!")
         elif not output_dir_path:
