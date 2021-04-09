@@ -959,32 +959,6 @@
       <string>Last inn</string>
      </property>
     </widget>
-    <widget class="QLabel" name="label_21">
-     <property name="geometry">
-      <rect>
-       <x>100</x>
-       <y>20</y>
-       <width>101</width>
-       <height>16</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Statistikk gjelder for:</string>
-     </property>
-    </widget>
-    <widget class="QLabel" name="statsLabel">
-     <property name="geometry">
-      <rect>
-       <x>210</x>
-       <y>20</y>
-       <width>47</width>
-       <height>13</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>TextLabel</string>
-     </property>
-    </widget>
    </widget>
   </widget>
   <widget class="QPushButton" name="mergeButton">

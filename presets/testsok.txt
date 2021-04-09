@@ -1,1 +1,0 @@
-['Blomsterbeplantning', 'Bergrom', 'Grasdekker', 'Parkeringsområde'];kommune;Arendal;Alle

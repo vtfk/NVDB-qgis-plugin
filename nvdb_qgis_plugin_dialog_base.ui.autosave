@@ -39,7 +39,7 @@
     </rect>
    </property>
    <property name="currentIndex">
-    <number>5</number>
+    <number>3</number>
    </property>
    <widget class="QWidget" name="Objects">
     <attribute name="title">
@@ -728,7 +728,7 @@
      <property name="geometry">
       <rect>
        <x>230</x>
-       <y>330</y>
+       <y>290</y>
        <width>75</width>
        <height>23</height>
       </rect>
@@ -926,6 +926,37 @@
        <width>113</width>
        <height>20</height>
       </rect>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QWidget" name="tab_2">
+    <attribute name="title">
+     <string>Statistikk</string>
+    </attribute>
+    <widget class="QTableWidget" name="statsTable">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>561</width>
+       <height>361</height>
+      </rect>
+     </property>
+     <property name="editTriggers">
+      <set>QAbstractItemView::NoEditTriggers</set>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="statsButton">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>10</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Last inn</string>
      </property>
     </widget>
    </widget>
