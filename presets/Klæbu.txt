@@ -1,0 +1,1 @@
+['Basseng/Magasin', 'Belysningspunkt', 'Belysningsstrekning', 'Beredskapsveg', 'Bergrom'];kontraktsomrade;1654 Klæbu;K - Kommunalveg

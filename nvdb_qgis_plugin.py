@@ -168,6 +168,7 @@ class NvdbQgisPlugin:
         self.dlg.lineEdit_dirResult.setText(output_dirResult)
 
     def comparefiles(self):
+
         dirOldFiles = []
         dirNewFiles = []
 
@@ -177,8 +178,20 @@ class NvdbQgisPlugin:
 
         filnameInp = self.dlg.lineEdit_resNavn.text().strip()
 
+        colval = self.comp_checkbox_handler_nvdbid(), self.comp_checkbox_handler_object(), self.comp_checkbox_handler_free()
+
+        col = ''
+        i = 0
+        while colval[i] is None:
+            i += 1
+            if i == 3:
+                self.errorMessage("Du må angi en kollone!")
+                break
+        else:
+            col = colval[i]
+
         if filnameInp:
-            outputFilename = ('Resultat' + '_' + filnameInp + '_' + str(date.today()) + '.txt')
+            outputFilename = ('Resultat' + '_' + filnameInp + '_' + str(date.today()) + '.csv')
 
             file_path = os.path.join(selectedOutPutDir, outputFilename)
             if not os.path.isdir(selectedOutPutDir):
@@ -305,6 +318,38 @@ class NvdbQgisPlugin:
     def select_output_dir(self):
         output_dir = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
         self.dlg.lineEdit_dir.setText(output_dir)
+
+    def comp_checkbox_handler_free(self):
+        if self.dlg.checkBox_fritekst.isChecked():
+            if self.dlg.lineEdit_fritekst.text().strip() is '':
+                self.errorMessage("Du må angi en kollone!")
+                self.dlg.lineEdit_fritekst.setText("Angi en Kollone!")
+            else:
+                colval = self.dlg.lineEdit_fritekst.text().strip()
+                self.dlg.checkBox_nvdbid.setEnabled(False)
+                self.dlg.checkBox_objekt.setEnabled(False)
+                return colval
+        else:
+            self.dlg.checkBox_nvdbid.setEnabled(True)
+            self.dlg.checkBox_objekt.setEnabled(True)
+    def comp_checkbox_handler_nvdbid(self):
+        if self.dlg.checkBox_nvdbid.isChecked():
+            colval = 'nvdbid'
+            self.dlg.checkBox_objekt.setEnabled(False)
+            self.dlg.checkBox_fritekst.setEnabled(False)
+            return colval
+        else:
+            self.dlg.checkBox_objekt.setEnabled(True)
+            self.dlg.checkBox_fritekst.setEnabled(True)
+    def comp_checkbox_handler_object(self):
+        if self.dlg.checkBox_objekt.isChecked():
+            colval = 'Objekt'
+            self.dlg.checkBox_nvdbid.setEnabled(False)
+            self.dlg.checkBox_fritekst.setEnabled(False)
+            return colval
+        else:
+            self.dlg.checkBox_nvdbid.setEnabled(True)
+            self.dlg.checkBox_fritekst.setEnabled(True)
 
     def kommuneSelected(self):
         if self.dlg.kommuneCheck.isChecked():
