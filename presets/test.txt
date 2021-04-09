@@ -1,1 +1,1 @@
-[];fylke;Agder;Alle
+['Gjerde', 'Rekkverk', 'Fartsdemper', 'Nedsenka kantstein', 'Sykkelparkering', 'Rekkverksskjøt', 'Rekkverksende'];kommune;Midt-Telemark;Alle

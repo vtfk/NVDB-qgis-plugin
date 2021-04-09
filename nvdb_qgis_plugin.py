@@ -392,7 +392,7 @@ class NvdbQgisPlugin:
         self.dlg.textEdit.append("Kategori: " + index)
         if index == "Alle":
             items = getNames()
-            self.dlg.listWidgetObjects.addItems(items)
+            self.dlg.listWidgetObjects.addItems(sorted(items))
         else:
             items = getObjInCat(index)
             self.dlg.listWidgetObjects.addItems(items)
@@ -415,6 +415,8 @@ class NvdbQgisPlugin:
                 r = self.dlg.listWidget.row(selected_items[i])
                 self.dlg.textEdit.append("Fjernet " + selected_items[i].text())
                 self.dlg.listWidget.takeItem(r)
+                self.dlg.objectsList_Search.takeItem(r)
+                self.dlg.listWidget_layers.takeItem(r)
 
     def successMessage(self, message):
         successText = "<span style=\" color:#4cc27e;\" >"
@@ -531,6 +533,8 @@ class NvdbQgisPlugin:
         self.loadPresets()
         self.successMessage(filename + " lagret!")
         self.dlg.nameField.clear()
+        self.dlg.listWidget.clear()
+        self.dlg.objectsList_Search.clear()
 
     def loadPresets(self):
         nameList = returnNameData()
@@ -692,8 +696,7 @@ class NvdbQgisPlugin:
         names = self.getLayerNames()
         data = getLastSearch()
         valueList, itemList, amountList, lenghtList, areaList, areaTotalList  = [], [], [], [], [], []
-
-        self.dlg.statsLabel.setText(data[0] + " " + data[1] + " " + data[2])
+        valueList, itemList, amountList, lenghtList, areaList, areaTotalList  = [], [], [], [], [], []
 
         for i in names:
             item_id = getID(i)
@@ -735,7 +738,10 @@ class NvdbQgisPlugin:
             areaTotal = 0
             for u in range(amountList[i]):
                 if areaList[u] is not None:
-                    areaTotal+=areaList[u]
+                    if isinstance(areaList[u], str):
+                        pass
+                    else:
+                        areaTotal += areaList[u]
                 else:
                     pass
             areaTotalList.append(areaTotal)
