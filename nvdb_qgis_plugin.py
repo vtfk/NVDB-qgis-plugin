@@ -321,18 +321,20 @@ class NvdbQgisPlugin:
         self.dlg.lineEdit_dir.setText(output_dir)
 
     def comp_checkbox_handler_free(self):
+        colval = ''
         if self.dlg.checkBox_fritekst.isChecked():
+            colval = self.dlg.lineEdit_fritekst.text().strip()
+            self.dlg.checkBox_nvdbid.setEnabled(False)
+            self.dlg.checkBox_objekt.setEnabled(False)
             if self.dlg.lineEdit_fritekst.text().strip() is '':
                 self.errorMessage("Du må angi en kollone!")
                 self.dlg.lineEdit_fritekst.setText("Angi en Kollone!")
-            else:
-                colval = self.dlg.lineEdit_fritekst.text().strip()
-                self.dlg.checkBox_nvdbid.setEnabled(False)
-                self.dlg.checkBox_objekt.setEnabled(False)
-                return colval
         else:
             self.dlg.checkBox_nvdbid.setEnabled(True)
             self.dlg.checkBox_objekt.setEnabled(True)
+        return colval
+
+
     def comp_checkbox_handler_nvdbid(self):
         if self.dlg.checkBox_nvdbid.isChecked():
             colval = 'nvdbid'
@@ -348,6 +350,17 @@ class NvdbQgisPlugin:
             self.dlg.checkBox_nvdbid.setEnabled(False)
             self.dlg.checkBox_fritekst.setEnabled(False)
             return colval
+        else:
+            self.dlg.checkBox_nvdbid.setEnabled(True)
+            self.dlg.checkBox_fritekst.setEnabled(True)
+
+    def individualSelected(self):
+        if self.dlg.individCheck.isChecked():
+            self.dlg.kommuneCheck.setEnabled(False)
+            self.dlg.kontraktCheck.setEnabled(False)
+            self.dlg.fylkeBox.setEnabled(False)
+            self.dlg.kommuneBox.setEnabled(False)
+            self.dlg.kontraktBox.setEnabled(False)
         else:
             self.dlg.checkBox_nvdbid.setEnabled(True)
             self.dlg.checkBox_fritekst.setEnabled(True)
