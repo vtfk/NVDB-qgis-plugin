@@ -303,18 +303,6 @@ class NvdbQgisPlugin:
         output_dir = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
         self.dlg.lineEdit_dir.setText(output_dir)
 
-    def individualSelected(self):
-        if self.dlg.individCheck.isChecked():
-            self.dlg.kommuneCheck.setEnabled(False)
-            self.dlg.kontraktCheck.setEnabled(False)
-            self.dlg.fylkeBox.setEnabled(False)
-            self.dlg.kommuneBox.setEnabled(False)
-            self.dlg.kontraktBox.setEnabled(False)
-        else:
-            self.dlg.kontraktCheck.setEnabled(True)
-            self.dlg.kommuneCheck.setEnabled(True)
-            self.dlg.fylkeBox.setEnabled(True)
-
     def kommuneSelected(self):
         if self.dlg.kommuneCheck.isChecked():
             self.displayFilters()
@@ -322,6 +310,7 @@ class NvdbQgisPlugin:
             self.dlg.kontraktCheck.setChecked(False)
             self.dlg.kontraktBox.setEnabled(False)
         else:
+            self.displayFilters()
             self.dlg.kommuneBox.setEnabled(False)
 
     def kontraktSelected(self):
@@ -331,6 +320,7 @@ class NvdbQgisPlugin:
             self.dlg.kommuneCheck.setChecked(False)
             self.dlg.kommuneBox.setEnabled(False)
         else:
+            self.displayFilters()
             self.dlg.kontraktBox.setEnabled(False)
 
     def fylkeBox_itemChanged(self):
