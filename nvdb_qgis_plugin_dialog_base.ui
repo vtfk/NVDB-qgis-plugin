@@ -513,6 +513,19 @@
       <string>Slett</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="folderButton">
+     <property name="geometry">
+      <rect>
+       <x>500</x>
+       <y>210</y>
+       <width>75</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Åpne mappe</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QWidget" name="CSV">
     <attribute name="title">

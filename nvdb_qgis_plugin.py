@@ -128,6 +128,7 @@ class NvdbQgisPlugin:
         self.dlg.searchTable.doubleClicked.connect(self.searchPreset)
         self.dlg.deleteButton.clicked.connect(self.deletePreset)
         self.dlg.statsButton.clicked.connect(self.loadStats)
+        self.dlg.folderButton.clicked.connect(self.openFolder)
         getAllAreaData()
         getAllObjectData()
         getAllPresetData()
@@ -594,6 +595,12 @@ class NvdbQgisPlugin:
         getAllPresetData()
         self.loadPresets()
         self.successMessage(name + " slettet.")
+
+    def openFolder(self):
+        import subprocess
+        relPath = os.path.dirname(os.path.abspath(__file__))
+        presetPath = os.path.join(relPath, "presets")
+        subprocess.Popen(f'explorer "{presetPath}"')
 
     def getStats(self):
         objList = [str(self.dlg.listWidget_layers.item(i).text()) for i in range(self.dlg.listWidget_layers.count())]
