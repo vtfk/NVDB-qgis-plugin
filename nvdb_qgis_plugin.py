@@ -464,18 +464,28 @@ class NvdbQgisPlugin:
 
     def displayFilters(self):
         self.dlg.searchEdit.clear()
+        self.dlg.filterEdit.clear()
         if self.dlg.kommuneCheck.isChecked():
             self.dlg.searchEdit.append(self.boldText("Kommune"))
             self.dlg.searchEdit.append(self.dlg.kommuneBox.currentText())
+            self.dlg.filterEdit.append(self.boldText("Kommune"))
+            self.dlg.filterEdit.append(self.dlg.kommuneBox.currentText())
         if self.dlg.kontraktCheck.isChecked():
             self.dlg.searchEdit.append(self.boldText("Kontraktsområde"))
             self.dlg.searchEdit.append(self.dlg.kontraktBox.currentText())
+            self.dlg.filterEdit.append(self.boldText("Kontraktsområde"))
+            self.dlg.filterEdit.append(self.dlg.kontraktBox.currentText())
         else:
             self.dlg.searchEdit.append(self.boldText("Fylke"))
             self.dlg.searchEdit.append(self.dlg.fylkeBox.currentText())
+            self.dlg.filterEdit.append(self.boldText("Fylke"))
+            self.dlg.filterEdit.append(self.dlg.fylkeBox.currentText())
         self.dlg.searchEdit.append(" ")
         self.dlg.searchEdit.append(self.boldText("Vegsystemreferanse"))
         self.dlg.searchEdit.append(self.dlg.vegsystemBox.currentText())
+        self.dlg.filterEdit.append(" ")
+        self.dlg.filterEdit.append(self.boldText("Vegsystemreferanse"))
+        self.dlg.filterEdit.append(self.dlg.vegsystemBox.currentText())
 
     def mergeLayers(self):
         project = QgsProject.instance()
