@@ -116,7 +116,7 @@ class NvdbQgisPlugin:
         self.dlg.fylkeBox.currentIndexChanged.connect(self.fylkeBox_itemChanged)
         self.dlg.kommuneBox.currentIndexChanged[str].connect(self.kommuneBox_itemChanged)
         self.dlg.kontraktBox.currentIndexChanged[str].connect(self.kontraktBox_itemChanged)
-        self.dlg.mergeButton.clicked.connect(self.mergeLayers)
+        # self.dlg.mergeButton.clicked.connect(self.mergeLayers)
         self.dlg.selectdirButton.clicked.connect(self.select_output_dir)
         self.dlg.kjorButton.clicked.connect(self.runTask)
         self.dlg.saveButton.clicked.connect(self.saveAsPreset)
