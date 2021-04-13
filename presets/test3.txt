@@ -1,0 +1,1 @@
+['Grasdekker', 'Grøntanlegg', 'Kantklippareal'];kommune;Midt-Telemark;F - Fylkesveg

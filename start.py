@@ -2,6 +2,8 @@
 import sys
 import os
 
+#Legger til nvdbapiv3 i enviroment
+
 script_dir = os.path.dirname(__file__)
 rel_path_nvdbapi = 'nvdbapi-V3-master'
 rel_path_nvdbobjects = 'nvdbobjects.py'

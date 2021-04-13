@@ -28,11 +28,11 @@ import sys
 
 # noinspection PyPep8Naming
 def classFactory(iface):  # pylint: disable=invalid-name
-    """Load NvdbQgisPlugin class from file NvdbQgisPlugin.
-
-    :param iface: A QGIS interface instance.
-    :type iface: QgsInterface
     """
+    Load NvdbQgisPlugin class from file NvdbQgisPlugin.
+    Kjører start.py
+    """
+
 
     script_dir = os.path.dirname(__file__)
     rel_path = 'start.py'

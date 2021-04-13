@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 import os.path
-import os
-import sys
 import csv
 
 from nvdbapiv3 import nvdbFagdata
-from qgis._core import QgsProject, QgsWkbTypes, QgsProcessingException
 from qgis.core import *
-from qgis.utils import iface
 from qgis import processing
 from nvdbapiV3qgis3 import nvdbsok2qgis
 from .nvdbobjects import *
@@ -16,16 +12,16 @@ from .nvdbpresets import *
 from .lastsearch import *
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import *
-from qgis.PyQt.QtWidgets import QAction, QDockWidget, QTableWidgetItem
+from qgis.PyQt.QtWidgets import  QDockWidget, QTableWidgetItem
 from collections import namedtuple
 
-from qgis.PyQt.QtWidgets import QAction, QFileDialog, QApplication, QDialog, QProgressBar
-from PyQt5.QtWidgets import QListView, QMessageBox, QTableWidget, QHeaderView
-from PyQt5 import QtGui, QtCore
+from qgis.PyQt.QtWidgets import QAction, QFileDialog
+from PyQt5.QtWidgets import QHeaderView
 
 from .csvdiff import csvdiff
 from datetime import date
 # Initialize Qt resources from file resources.py
+# Denne brukes bare når gui starter, ikke slett
 from .resources import *
 # Import the code for the dialog
 from .nvdb_qgis_plugin_dialog import NvdbQgisPluginDialog
@@ -98,7 +94,7 @@ class NvdbQgisPlugin:
                 action)
 
         self.actions.append(action)
-        # Connect all actions
+        # Connecter alle knapper og andre actions
         self.dlg.dirOldButton.clicked.connect(self.select_oldDir)
         self.dlg.dirNewButton.clicked.connect(self.select_newDir)
         self.dlg.dirResultButton.clicked.connect(self.select_dirResult)
@@ -129,8 +125,11 @@ class NvdbQgisPlugin:
         self.dlg.deleteButton.clicked.connect(self.deletePreset)
         self.dlg.statsButton.clicked.connect(self.loadStats)
         self.dlg.folderButton.clicked.connect(self.openFolder)
+        # Henter filtreringsdata
         getAllAreaData()
+        # Henter vegobjekter
         getAllObjectData()
+        # Henter alle presets
         getAllPresetData()
         self.dlg.vegsystemBox.addItems(returnVegreferanseData())
         return action
@@ -354,18 +353,12 @@ class NvdbQgisPlugin:
             self.dlg.checkBox_nvdbid.setEnabled(True)
             self.dlg.checkBox_fritekst.setEnabled(True)
 
-    def individualSelected(self):
-        if self.dlg.individCheck.isChecked():
-            self.dlg.kommuneCheck.setEnabled(False)
-            self.dlg.kontraktCheck.setEnabled(False)
-            self.dlg.fylkeBox.setEnabled(False)
-            self.dlg.kommuneBox.setEnabled(False)
-            self.dlg.kontraktBox.setEnabled(False)
-        else:
-            self.dlg.checkBox_nvdbid.setEnabled(True)
-            self.dlg.checkBox_fritekst.setEnabled(True)
-
     def kommuneSelected(self):
+        """
+        Sjekker om kommune er valgt som filter.
+        Bare en av checkboxene skal kunne velges samtidig.
+        Derfor uncheckes andre når en er trykket
+        """
         if self.dlg.kommuneCheck.isChecked():
             self.displayFilters()
             self.dlg.kommuneBox.setEnabled(True)
@@ -402,6 +395,9 @@ class NvdbQgisPlugin:
         self.displayFilters()
 
     def comboBox_itemChanged(self, index):
+        """
+        Henter vegobjekter når kategori endres.
+        """
         self.dlg.listWidgetObjects.clear()
         self.dlg.textEdit.append("Kategori: " + index)
         if index == "Alle":
@@ -412,6 +408,9 @@ class NvdbQgisPlugin:
             self.dlg.listWidgetObjects.addItems(items)
 
     def addItem(self):
+        """
+        Legger valgte vegobjekter i listene
+        """
         all_items = self.dlg.listWidgetObjects.selectedItems()
         for i in range(len(all_items)):
             self.dlg.listWidget.addItem(all_items[i].text())
@@ -421,6 +420,9 @@ class NvdbQgisPlugin:
         self.dlg.listWidgetObjects.clearSelection()
 
     def removeItem(self):
+        """
+        Fjerner vegobjekter fra listene
+        """
         selected_items = self.dlg.listWidget.selectedItems()
         if not selected_items:
             pass
@@ -433,18 +435,27 @@ class NvdbQgisPlugin:
                 self.dlg.listWidget_layers.takeItem(r)
 
     def successMessage(self, message):
+        """
+        Grønn tekst i textbox
+        """
         successText = "<span style=\" color:#4cc27e;\" >"
         successText += message
         successText += "</span>"
         self.dlg.textEdit.append(successText)
 
     def errorMessage(self, message):
+        """
+        Rød tekst i textbox
+        """
         errorText = "<span style=\" color:#ff0000;\" >"
         errorText += message
         errorText += "</span>"
         self.dlg.textEdit.append(errorText)
 
     def boldText(self, message):
+        """
+        Fet tekst i textbox
+        """
         boldText = "<span style=\" font-weight:bold;\" >"
         boldText += message
         boldText += "</span>"
@@ -463,6 +474,9 @@ class NvdbQgisPlugin:
         self.dlg.kontraktBox.addItems(getKontraktNavn(index))
 
     def displayFilters(self):
+        """
+        Viser valgte filtre i textboxer
+        """
         self.dlg.searchEdit.clear()
         self.dlg.filterEdit.clear()
         if self.dlg.kommuneCheck.isChecked():
@@ -487,7 +501,14 @@ class NvdbQgisPlugin:
         self.dlg.filterEdit.append(self.boldText("Vegsystemreferanse"))
         self.dlg.filterEdit.append(self.dlg.vegsystemBox.currentText())
 
+    """
     def mergeLayers(self):
+    
+        Denne funskjonen slo sammen lag av samme vegobjektstype der
+        det var mulig.
+        Fungerer fint i QGIS 3.10, men nyere versjoner har problemer.
+        Kan kanskje brukes senere om en finner en måte å løse problemene på.
+        
         project = QgsProject.instance()
         completeLayerList = []
         for id, layer in project.mapLayers().items():
@@ -531,8 +552,13 @@ class NvdbQgisPlugin:
 
         for i in completeLayerList:
             project.removeMapLayers([i.id()])
+    """
 
     def saveAsPreset(self):
+        """
+        Lagrer valgte vegobjekter og valgt filtrering
+        som ett preset
+        """
         objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
         areaType = None
         area = None
@@ -553,6 +579,7 @@ class NvdbQgisPlugin:
         file = open(path, "w")
         file.write(str(objList) + ";" + areaType + ";" + area + ";" + road)
         file.close()
+        # Laster inn alle presets på nytt
         getAllPresetData()
         self.loadPresets()
         self.successMessage(filename + " lagret!")
@@ -582,6 +609,9 @@ class NvdbQgisPlugin:
             QHeaderView.Stretch)
 
     def searchPreset(self):
+        """
+        Søker på valgt preset
+        """
         rowNumber = None
         for i in self.dlg.searchTable.selectionModel().selectedIndexes():
             rowNumber = i.row()
@@ -620,6 +650,9 @@ class NvdbQgisPlugin:
         self.successMessage(name + " slettet.")
 
     def openFolder(self):
+        """
+        Åpner mappen som inneholder tekstfilene med presets
+        """
         import subprocess
         relPath = os.path.dirname(os.path.abspath(__file__))
         presetPath = os.path.join(relPath, "presets")
@@ -723,6 +756,10 @@ class NvdbQgisPlugin:
         print(stats)
 
     def loadStats(self):
+        """
+        Henter statistikk fra layers i QGIS. Bruker siste filtrering brukt
+        som grunnlag. Se lastsearch.py
+        """
         names = self.getLayerNames()
         data = getLastSearch()
         valueList, itemList, amountList, lenghtList, areaList, areaTotalList  = [], [], [], [], [], []
@@ -803,6 +840,10 @@ class NvdbQgisPlugin:
         self.successMessage(data[2])
 
     def getLayerNames(self):
+        """
+        Henter alle layer navn.
+        Ekskluderer alle som er duplikater eller bare forskjellig WKT type.
+        """
         project = QgsProject.instance()
         nameList = []
         for id, layer in project.mapLayers().items():
@@ -830,6 +871,11 @@ class NvdbQgisPlugin:
             self.iface.actionShowPythonDialog().trigger()
         objList = [str(self.dlg.listWidget.item(i).text()) for i in range(self.dlg.listWidget.count())]
         for item in objList:
+            """
+            Legger til søk som en task.
+            Det blir en kø som kjører alle søk etter hverandre.
+            Gjør at QGIS ikke henger seg opp på langt nær like mye som uten
+            """
             task = QgsTask.fromFunction("Henter: " + item, getLayers, on_finished=completed, item=item, qtGui=self.dlg)
             self.tm.addTask(task)
 
@@ -843,14 +889,17 @@ class NvdbQgisPlugin:
         self.dlg.comboBox.clear()
         self.dlg.comboBox.addItems(sortCategories())
         self.dlg.fylkeBox.addItems(getFylkeNavn())
-        self.dlg.openLayers = openLayers = QgsProject.instance().layerTreeRoot().children()
+        self.dlg.openLayers = QgsProject.instance().layerTreeRoot().children()
         self.dlg.listWidget_layers.clear()
-        #self.dlg.listWidget_layers.addItems([layer.name() for layer in openLayers])
         self.dlg.show()
         result = self.dlg.exec_()
         if result:
             """ Close """
 
+
+"""
+Her kjøres taskene
+"""
 
 def getLayers(task, item, qtGui):
     """
@@ -910,9 +959,9 @@ def stopped(task):
 
 
 def completed(exception, result=None):
-    """This is called when doSomething is finished.
-    Exception is not None if doSomething raises an exception.
-    result is the return value of doSomething."""
+    """This is called when getLayers is finished.
+    Exception is not None if getLayers raises an exception.
+    result is the return value of getLayers."""
 
     if exception is None:
         if result is None:
