@@ -8,7 +8,6 @@ class nvdbareas:
         self.kontrakt = None
         self.vegreferanser = None
         self.selectedvegreferanse = None
-
     def getFylkeData(self):
         return self.fylke
 

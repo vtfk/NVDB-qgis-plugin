@@ -168,6 +168,12 @@ class NvdbQgisPlugin:
         self.dlg.lineEdit_dirResult.setText(output_dirResult)
 
     def comparefiles(self):
+        """
+        Funksjonen sammenligner csv filer.
+        Funksjonen tar filer fra to mapper, leser igjennom mappen og sammenligner
+        De filene som har likt navn.
+        Om det finnes filer i en mappe og ikke i den andre mappen vil disse filene fjernes fra sammenligningen.
+        """
 
         dirOldFiles = []
         dirNewFiles = []
@@ -182,10 +188,14 @@ class NvdbQgisPlugin:
 
         col = ''
         i = 0
+        """
+        Itererer gjennom colval listen, og gir col en gyldig verdi.
+        Verdien brukes til å sammenligne koloner. 
+        """
         while colval[i] is None:
             i += 1
             if i == 3:
-                self.errorMessage("Du må angi en kollone!")
+                self.errorMessage("Du må angi en kolone!")
                 break
         else:
             col = colval[i]
@@ -196,23 +206,23 @@ class NvdbQgisPlugin:
             file_path = os.path.join(selectedOutPutDir, outputFilename)
             if not os.path.isdir(selectedOutPutDir):
                 os.makedirs(selectedOutPutDir)
-
+            #Ignorerer filer som ikke er csv filer
             for filenameOld in os.listdir(selectedDirOld):
                 if filenameOld.endswith(".csv"):
                     dirOldFiles.append(filenameOld)
-                    # print(dirOldFiles)
                 else:
                     print("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
-
+            # Ignorerer filer som ikke er csv filer
             for filenameNew in os.listdir(selectedDirNew):
                 if filenameNew.endswith(".csv"):
                     dirNewFiles.append(filenameNew)
 
                 else:
                     print("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
-
-            # Sjekker etter filer som har samme nanv, de filene som ikke har same navn vil bli lagt i en liste og
-            # brukeren vil se hvilken filer som ikke ligger i sjekkmappen, diroldfiles.
+            """
+            Sjekker etter filer som har samme navn, de filene som ikke har same navn vil bli lagt i en liste og
+            brukeren vil se hvilken filer som ikke ligger i sjekkmappen, diroldfiles.
+            """
             filter_listold = [string for string in dirOldFiles if string not in dirNewFiles]
             if not filter_listold:
                 pass
@@ -304,10 +314,16 @@ class NvdbQgisPlugin:
                         layer_filename = os.path.join(output_dir, layer.name())
                         writer = QgsVectorFileWriter.writeAsVectorFormatV2(layer,
                                                                            layer_filename,
-                                                                           QgsCoordinateTransformContext(), options)
+                                                                           QgsCoordinateTransformContext(),
+                                                                           options)
                         self.successMessage("Utskrift av lag: " + layer.name() + " er fullført")
                         if writer[0]:
-                            self.iface.messageBar().pushMessage("NVDB Utskrift Error", "Klarte ikke å skrive ut: " + layer.name() + " Status: " + str(writer), level=Qgis.Critical)
+                            self.iface.messageBar().pushMessage("NVDB Utskrift Error",
+                                                                "Klarte ikke å skrive ut: " +
+                                                                layer.name() +
+                                                                " Status: " +
+                                                                str(writer),
+                                                                level=Qgis.Critical)
                 self.successMessage('Utskrift fullført!')
         elif not output_dir_input:
             self.errorMessage("Du må gi den nye mappen et navn!")
@@ -320,21 +336,29 @@ class NvdbQgisPlugin:
         self.dlg.lineEdit_dir.setText(output_dir)
 
     def comp_checkbox_handler_free(self):
+        """
+        Om checkboxen for fritekst er checket og den inneholder en verdi vil den returnere
+        denne verdien til colval.
+        """
         colval = ''
         if self.dlg.checkBox_fritekst.isChecked():
             colval = self.dlg.lineEdit_fritekst.text().strip()
             self.dlg.checkBox_nvdbid.setEnabled(False)
             self.dlg.checkBox_objekt.setEnabled(False)
             if self.dlg.lineEdit_fritekst.text().strip() is '':
-                self.errorMessage("Du må angi en kollone!")
-                self.dlg.lineEdit_fritekst.setText("Angi en Kollone!")
+                self.errorMessage("Du må angi en kolone!")
+                self.dlg.lineEdit_fritekst.setText("Angi en Kolone!")
         else:
             self.dlg.checkBox_nvdbid.setEnabled(True)
             self.dlg.checkBox_objekt.setEnabled(True)
         return colval
 
-
     def comp_checkbox_handler_nvdbid(self):
+        """
+        Om checkboxen for nvdbid er checket vil den returnere nvdbid til colval.
+        Denne verdien brukes for å sammenligne koloner i csvfiler generert av utskriften til
+        attributt tabellen til lagene i qgis.
+        """
         if self.dlg.checkBox_nvdbid.isChecked():
             colval = 'nvdbid'
             self.dlg.checkBox_objekt.setEnabled(False)
@@ -343,7 +367,13 @@ class NvdbQgisPlugin:
         else:
             self.dlg.checkBox_objekt.setEnabled(True)
             self.dlg.checkBox_fritekst.setEnabled(True)
+
     def comp_checkbox_handler_object(self):
+        """
+        Om checkboxen for objekt er checked vil den returnere Objekt til colval.
+        Denne verdien brukes for å sammenligne koloner i csvfiler generert av utskrift av mengder.
+        Disse mengdene blir hentet fra NVDB.
+        """
         if self.dlg.checkBox_objekt.isChecked():
             colval = 'Objekt'
             self.dlg.checkBox_nvdbid.setEnabled(False)
@@ -659,6 +689,11 @@ class NvdbQgisPlugin:
         subprocess.Popen(f'explorer "{presetPath}"')
 
     def getStats(self):
+        """
+        Henter mengdedata til objekter lagret i NVDB.
+        Denne dataen blir hentet med filtrering gitt av bruker.
+        Dataen blir skrevet til en csvfil.
+        """
         objList = [str(self.dlg.listWidget_layers.item(i).text()) for i in range(self.dlg.listWidget_layers.count())]
         valueList, indexList, antallList, lengdeList, areallist, itemlist, arealsum, data, namelist, statslist, rnonelist = [], [], [], [], [], [], [], [], [], [], []
         colnavn = namedtuple('colnavn', ['Objekt', 'Antall', 'Lengde', 'Areal'])
@@ -667,6 +702,7 @@ class NvdbQgisPlugin:
         output_dir_path = self.dlg.lineEdit_dir_m.text().strip()
         userin_file_name = self.dlg.lineEdit_fileNameM.text().strip()
 
+        #Sjekker at bruker har oppgitt filnavn og filsti for utskrift.
         if userin_file_name and output_dir_path:
             output_dir = (output_dir_path + '/' + 'Mengder_' + today)
             try:
@@ -679,6 +715,7 @@ class NvdbQgisPlugin:
                 with open(filename, 'w', newline='', encoding='utf8') as fm:
                     writer = csv.writer(fm, delimiter=',')
                     writer.writerow(colnavn._fields)
+                    #Leser objekt fra en objekt liste laget av bruker og legger til filtrering gitt av bruker.
                     for itemname in objList:
                         namelist.append(itemname)
                         item_id = getID(itemname)
@@ -694,10 +731,12 @@ class NvdbQgisPlugin:
                             item.filter({'fylke': fylkeID})
                         if returnSelectedVegreferanse() != "Alle":
                             item.filter({'vegsystemreferanse': [returnSelectedVegreferanse()[0]]})
+                        #Statistikk() er en funksjon fra NVDB som henter ut lengde og data for det gitte objektet.
                         for v in item.statistikk().items():
                             valueList.append(v)
                         itemlist.append(item)
 
+                    #Henter ut arealverdien til objektet fra NVDB.
                     for itemobj in itemlist:
                         while itemobj is not None:
                             areal = itemobj.nesteNvdbFagObjekt()
@@ -708,7 +747,7 @@ class NvdbQgisPlugin:
                                 continue
                         else:
                             break
-
+                    #Deler valueList. En liste med lengde verdi og en med antall verdi.
                     for i in valueList:
                         indexList.append(i)
                     for a in range(0, len(indexList), 2):
@@ -718,6 +757,7 @@ class NvdbQgisPlugin:
 
                     start = 0
                     i = 0
+                    #Skriver verdiene til fil.
                     for antall, lengde in zip(antallList, lengdeList):
                         # print('{} {}'.format(antall[1], lengde[1]))
                         for a in range(1, len(antall)):
