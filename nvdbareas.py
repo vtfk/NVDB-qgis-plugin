@@ -1,5 +1,11 @@
+"""
+Her hentes og lagres filtreringsdata fra NVDB.
+Det er også funskjoner for henting av ID blant annet
+"""
+
 import requests
 import json
+
 
 class nvdbareas:
     def __init__(self):
@@ -8,6 +14,7 @@ class nvdbareas:
         self.kontrakt = None
         self.vegreferanser = None
         self.selectedvegreferanse = None
+
     def getFylkeData(self):
         return self.fylke
 
@@ -38,11 +45,14 @@ class nvdbareas:
     def setSelectedVegreferanse(self, s):
         self.selectedvegreferanse = s
 
+
 nvdb = nvdbareas()
+
 
 def getRequest(req):
     response = requests.get(req)
     return json.loads(response.text)
+
 
 def getAllAreaData():
     mainReq = getRequest('https://nvdbapiles-v3.atlas.vegvesen.no/omrader')
@@ -55,8 +65,10 @@ def getAllAreaData():
     nvdb.setFylkeData(reqList[0])
     nvdb.setKommuneData(reqList[1])
     nvdb.setKontraktData(reqList[3])
-    vegreferanseList = ['Alle', 'E - Europaveg', 'R - Riksveg', 'F - Fylkesveg', 'K - Kommunalveg', 'P - Privatveg', 'S - Skogsbilveg']
+    vegreferanseList = ['Alle', 'E - Europaveg', 'R - Riksveg', 'F - Fylkesveg', 'K - Kommunalveg', 'P - Privatveg',
+                        'S - Skogsbilveg']
     nvdb.setVegreferanseData(vegreferanseList)
+
 
 def getFylkeNavn():
     fylker = returnFylkeData()
@@ -65,6 +77,7 @@ def getFylkeNavn():
         name = i['navn']
         nameList.append(name)
     return sorted(nameList)
+
 
 def getKommuneNavn(index):
     kommuner = returnKommuneData()
@@ -82,6 +95,7 @@ def getKommuneNavn(index):
         else:
             pass
     return sorted(kommuneList)
+
 
 def getKontraktNavn(index):
     fylker = returnFylkeData()
@@ -102,6 +116,7 @@ def getKontraktNavn(index):
 
     return sorted(kontraktList)
 
+
 def getFylkeID(index):
     fylker = returnFylkeData()
     fylkeID = None
@@ -109,6 +124,7 @@ def getFylkeID(index):
         if i['navn'] == index:
             fylkeID = i['nummer']
     return fylkeID
+
 
 def getKommuneID(index):
     kommuner = returnKommuneData()
@@ -118,20 +134,26 @@ def getKommuneID(index):
             kommuneID = i['nummer']
     return kommuneID
 
+
 def selectedVegreferanse(index):
     nvdb.setSelectedVegreferanse(index)
+
 
 def returnFylkeData():
     return nvdb.getFylkeData()
 
+
 def returnKommuneData():
     return nvdb.getKommuneData()
+
 
 def returnKontraktData():
     return nvdb.getKontraktData()
 
+
 def returnVegreferanseData():
     return nvdb.getVegreferanseData()
+
 
 def returnSelectedVegreferanse():
     return nvdb.getSelectedVegreferanse()

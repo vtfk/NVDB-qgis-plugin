@@ -1,3 +1,9 @@
+"""
+txt filer med presets blir hentet fra filsystemet når plugin lastes inn.
+Data i disse filene blir lagret her og brukt til å skrive til tabell
+"""
+
+
 import os
 
 

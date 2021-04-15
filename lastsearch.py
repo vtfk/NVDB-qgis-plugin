@@ -1,3 +1,8 @@
+"""
+Her "lagres" siste søk. Slik at stats blir hentet med filtrering.
+"""
+
+
 class lastsearch:
     def __init__(self):
         self.area = None
@@ -22,7 +27,9 @@ class lastsearch:
     def setRoad(self, r):
         self.road = r
 
+
 last = lastsearch()
+
 
 def setLastSearch(a, at, r):
     last.setArea(None)
@@ -31,6 +38,7 @@ def setLastSearch(a, at, r):
     last.setArea(a)
     last.setAreaType(at)
     last.setRoad(r)
+
 
 def getLastSearch():
     info = [last.getArea(), last.getAreaType(), last.getRoad()]

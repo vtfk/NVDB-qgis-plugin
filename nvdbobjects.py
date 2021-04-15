@@ -1,3 +1,8 @@
+"""
+All vegobjektdata blir hentet og lagres i denne klassen.
+Vegobjektene blir også kategorisert
+"""
+
 import requests
 import json
 
