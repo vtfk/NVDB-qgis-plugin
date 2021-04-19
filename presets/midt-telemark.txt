@@ -1,0 +1,1 @@
+['Artsrik vegkant', 'Blomsterbeplantning', 'Busker', 'Fremmede arter', 'Fysisk inngrep i vannforekomst', 'Grasdekker', 'Grøntanlegg', 'Kantklippareal', 'Kjemisk påvirkning av vannforekomst', 'Naturområde', 'Plantekum', 'Siktsone', 'Trær'];kommune;Midt-Telemark;Alle

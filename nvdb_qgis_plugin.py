@@ -12,7 +12,7 @@ from .nvdbpresets import *
 from .lastsearch import *
 from qgis.PyQt.QtCore import QSettings, QTranslator, QCoreApplication
 from qgis.PyQt.QtGui import *
-from qgis.PyQt.QtWidgets import  QDockWidget, QTableWidgetItem
+from qgis.PyQt.QtWidgets import QDockWidget, QTableWidgetItem
 from collections import namedtuple
 
 from qgis.PyQt.QtWidgets import QAction, QFileDialog
@@ -206,7 +206,7 @@ class NvdbQgisPlugin:
             file_path = os.path.join(selectedOutPutDir, outputFilename)
             if not os.path.isdir(selectedOutPutDir):
                 os.makedirs(selectedOutPutDir)
-            #Ignorerer filer som ikke er csv filer
+            # Ignorerer filer som ikke er csv filer
             for filenameOld in os.listdir(selectedDirOld):
                 if filenameOld.endswith(".csv"):
                     dirOldFiles.append(filenameOld)
@@ -254,7 +254,7 @@ class NvdbQgisPlugin:
             fileResult.write("Resultat av sammenligning, " + "Dato: " + str(date.today()) + '\n')
 
             for old, new in zip(checkfile, newcheck):
-                #print('{} {}'.format(old, new))
+                # print('{} {}'.format(old, new))
                 patch = csvdiff.diff_files(selectedDirOld + '/' + old,
                                            selectedDirNew + '/' + new,
                                            [col])
@@ -296,7 +296,7 @@ class NvdbQgisPlugin:
         options = QgsVectorFileWriter.SaveVectorOptions()
         options.driverName = "CSV"
 
-        #Henter filsti
+        # Henter filsti
         output_dir_path = self.dlg.lineEdit_dir.text().strip()
         output_dir_input = self.dlg.lineEdit_newDirName.text().strip()
 
@@ -329,7 +329,6 @@ class NvdbQgisPlugin:
             self.errorMessage("Du må gi den nye mappen et navn!")
         elif not output_dir_path:
             self.errorMessage("Du må velge en filsti!")
-
 
     def select_output_dir(self):
         output_dir = QFileDialog.getExistingDirectory(self.dlg, "Velg filsti", "")
@@ -702,7 +701,7 @@ class NvdbQgisPlugin:
         output_dir_path = self.dlg.lineEdit_dir_m.text().strip()
         userin_file_name = self.dlg.lineEdit_fileNameM.text().strip()
 
-        #Sjekker at bruker har oppgitt filnavn og filsti for utskrift.
+        # Sjekker at bruker har oppgitt filnavn og filsti for utskrift.
         if userin_file_name and output_dir_path:
             output_dir = (output_dir_path + '/' + 'Mengder_' + today)
             try:
@@ -715,7 +714,7 @@ class NvdbQgisPlugin:
                 with open(filename, 'w', newline='', encoding='utf8') as fm:
                     writer = csv.writer(fm, delimiter=',')
                     writer.writerow(colnavn._fields)
-                    #Leser objekt fra en objekt liste laget av bruker og legger til filtrering gitt av bruker.
+                    # Leser objekt fra en objekt liste laget av bruker og legger til filtrering gitt av bruker.
                     for itemname in objList:
                         namelist.append(itemname)
                         item_id = getID(itemname)
@@ -731,12 +730,12 @@ class NvdbQgisPlugin:
                             item.filter({'fylke': fylkeID})
                         if returnSelectedVegreferanse() != "Alle":
                             item.filter({'vegsystemreferanse': [returnSelectedVegreferanse()[0]]})
-                        #Statistikk() er en funksjon fra NVDB som henter ut lengde og data for det gitte objektet.
+                        # Statistikk() er en funksjon fra NVDB som henter ut lengde og data for det gitte objektet.
                         for v in item.statistikk().items():
                             valueList.append(v)
                         itemlist.append(item)
 
-                    #Henter ut arealverdien til objektet fra NVDB.
+                    # Henter ut arealverdien til objektet fra NVDB.
                     for itemobj in itemlist:
                         while itemobj is not None:
                             areal = itemobj.nesteNvdbFagObjekt()
@@ -747,7 +746,7 @@ class NvdbQgisPlugin:
                                 continue
                         else:
                             break
-                    #Deler valueList. En liste med lengde verdi og en med antall verdi.
+                    # Deler valueList. En liste med lengde verdi og en med antall verdi.
                     for i in valueList:
                         indexList.append(i)
                     for a in range(0, len(indexList), 2):
@@ -757,7 +756,7 @@ class NvdbQgisPlugin:
 
                     start = 0
                     i = 0
-                    #Skriver verdiene til fil.
+                    # Skriver verdiene til fil.
                     for antall, lengde in zip(antallList, lengdeList):
                         # print('{} {}'.format(antall[1], lengde[1]))
                         for a in range(1, len(antall)):
@@ -802,8 +801,13 @@ class NvdbQgisPlugin:
         """
         names = self.getLayerNames()
         data = getLastSearch()
-        valueList, itemList, amountList, lenghtList, areaList, areaTotalList  = [], [], [], [], [], []
-        valueList, itemList, amountList, lenghtList, areaList, areaTotalList  = [], [], [], [], [], []
+        valueList, itemList, amountList, lenghtList, areaList, areaTotalList = [], [], [], [], [], []
+
+        for i in names:
+            if i == "OpenStreetMap":
+                names.remove(i)
+            else:
+                pass
 
         for i in names:
             item_id = getID(i)
@@ -854,22 +858,22 @@ class NvdbQgisPlugin:
             areaTotalList.append(areaTotal)
             areaList = areaList[amountList[i]:]
 
-
         # Row count
-        self.dlg.statsTable.setRowCount(len(names)+1)
+        self.dlg.statsTable.setRowCount(len(names) + 1)
         # Column count
         self.dlg.statsTable.setColumnCount(4)
         self.dlg.statsTable.setItem(0, 0, QTableWidgetItem("Navn"))
         self.dlg.statsTable.setItem(0, 1, QTableWidgetItem("Mengde"))
         self.dlg.statsTable.setItem(0, 2, QTableWidgetItem("Lengde"))
         self.dlg.statsTable.setItem(0, 3, QTableWidgetItem("Areal"))
-        for i in range(len(names)+1):
+        for i in range(len(names) + 1):
             if i == len(names):
                 break
-            self.dlg.statsTable.setItem(i+1, 0, QTableWidgetItem(names[i]))
-            self.dlg.statsTable.setItem(i+1, 1, QTableWidgetItem(str(amountList[i])))
-            self.dlg.statsTable.setItem(i+1, 2, QTableWidgetItem(str(round(int(lenghtList[i])))))
-            self.dlg.statsTable.setItem(i+1, 3, QTableWidgetItem(str(round(int(areaTotalList[i])))))
+            else:
+                self.dlg.statsTable.setItem(i + 1, 0, QTableWidgetItem(names[i]))
+                self.dlg.statsTable.setItem(i + 1, 1, QTableWidgetItem(str(amountList[i])))
+                self.dlg.statsTable.setItem(i + 1, 2, QTableWidgetItem(str(round(int(lenghtList[i])))))
+                self.dlg.statsTable.setItem(i + 1, 3, QTableWidgetItem(str(round(int(areaTotalList[i])))))
         # Table will fit the screen horizontally
         self.dlg.statsTable.horizontalHeader().setStretchLastSection(True)
         self.dlg.statsTable.horizontalHeader().setSectionResizeMode(
@@ -893,7 +897,6 @@ class NvdbQgisPlugin:
                 nameList[i] = nameList[i][:-3]
         nameList = list(dict.fromkeys(nameList))
         return nameList
-
 
     def runTask(self):
         if self.dlg.kommuneCheck.isChecked():
@@ -940,6 +943,7 @@ class NvdbQgisPlugin:
 """
 Her kjøres taskene
 """
+
 
 def getLayers(task, item, qtGui):
     """

@@ -1,1 +1,0 @@
-['Tunnel', 'Bergrom', 'Bru', 'Tunnelløp', 'Parkeringsområde'];kommune;Midt-Telemark;Alle
