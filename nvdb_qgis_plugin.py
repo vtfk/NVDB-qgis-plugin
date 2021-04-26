@@ -614,6 +614,7 @@ class NvdbQgisPlugin:
         self.successMessage(filename + " lagret!")
         self.dlg.nameField.clear()
         self.dlg.listWidget.clear()
+        self.dlg.listWidget_layers.clear()
         self.dlg.objectsList_Search.clear()
 
     def loadPresets(self):
