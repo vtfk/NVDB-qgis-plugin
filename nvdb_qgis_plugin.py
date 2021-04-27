@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os.path
 import csv
+import re
 
 from nvdbapiv3 import nvdbFagdata
 from qgis.core import *
@@ -648,7 +649,9 @@ class NvdbQgisPlugin:
             rowNumber = i.row()
         objList = self.dlg.searchTable.item(rowNumber, 1).text()
         objList = objList[1:-1]
-        objList = objList.split(",")
+        objList = re.split("',", objList)
+        objList = [w.replace("'", "") for w in objList]
+        objList = [w.strip(' ') for w in objList]
         areaType = self.dlg.searchTable.item(rowNumber, 2).text()
         area = self.dlg.searchTable.item(rowNumber, 3).text()
         road = self.dlg.searchTable.item(rowNumber, 4).text()
@@ -657,11 +660,7 @@ class NvdbQgisPlugin:
         if not pythonConsole or not pythonConsole.isVisible():
             self.iface.actionShowPythonDialog().trigger()
         for i in range(len(objList)):
-            if i == 0:
-                item = objList[i]
-            else:
-                item = objList[i][1:]
-            item = item[1:-1]
+            item = objList[i]
             task = QgsTask.fromFunction("Henter: " + objList[i], getLayersFromPreset, on_finished=completed,
                                         item=item, areaType=areaType, area=area, road=road)
             self.tm.addTask(task)
@@ -695,11 +694,21 @@ class NvdbQgisPlugin:
             rowNumber = i.row()
         objList = self.dlg.searchTable.item(rowNumber, 1).text()
         objList = objList[1:-1]
-        objList = objList.split(",")
-        areaType = self.dlg.searchTable.item(rowNumber, 2).text()
+        objList = re.split("',", objList)
+        objList = [w.replace("'", "") for w in objList]
+        objList = [w.strip(' ') for w in objList]
+        """areaType = self.dlg.searchTable.item(rowNumber, 2).text()
         area = self.dlg.searchTable.item(rowNumber, 3).text()
         road = self.dlg.searchTable.item(rowNumber, 4).text()
-        setLastSearch(area, areaType, road)
+        setLastSearch(area, areaType, road)"""
+        self.dlg.listWidget.clear()
+        self.dlg.objectsList_Search.clear()
+        self.dlg.listWidget_layers.clear()
+        for i in range(len(objList)):
+            self.dlg.listWidget.addItem(objList[i])
+            self.dlg.objectsList_Search.addItem(objList[i])
+            self.dlg.listWidget_layers.addItem(objList[i])
+            self.dlg.textEdit.append("Lagt til " + objList[i])
 
     def getStats(self):
         """

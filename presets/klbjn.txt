@@ -1,0 +1,1 @@
+['Elv/Bekk, gjenlagt', 'Kulturminne, øvrig', 'Ladetårn', 'Kurvaturgenerering'];fylke;Agder;Alle
