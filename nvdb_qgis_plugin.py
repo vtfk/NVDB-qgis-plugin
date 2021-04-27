@@ -125,6 +125,7 @@ class NvdbQgisPlugin:
         self.dlg.deleteButton.clicked.connect(self.deletePreset)
         self.dlg.statsButton.clicked.connect(self.loadStats)
         self.dlg.folderButton.clicked.connect(self.openFolder)
+        self.dlg.setButton.clicked.connect(self.setSearch)
         # Henter filtreringsdata
         getAllAreaData()
         # Henter vegobjekter
@@ -190,12 +191,12 @@ class NvdbQgisPlugin:
         i = 0
         """
         Itererer gjennom colval listen, og gir col en gyldig verdi.
-        Verdien brukes til å sammenligne koloner. 
+        Verdien brukes til å sammenligne kolonner. 
         """
         while colval[i] is None:
             i += 1
             if i == 3:
-                self.errorMessage("Du må angi en kolone!")
+                self.errorMessage("Du må angi en kolonne!")
                 break
         else:
             col = colval[i]
@@ -211,14 +212,14 @@ class NvdbQgisPlugin:
                 if filenameOld.endswith(".csv"):
                     dirOldFiles.append(filenameOld)
                 else:
-                    print("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
+                    self.dlg.textEdit.append("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
             # Ignorerer filer som ikke er csv filer
             for filenameNew in os.listdir(selectedDirNew):
                 if filenameNew.endswith(".csv"):
                     dirNewFiles.append(filenameNew)
 
                 else:
-                    print("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
+                    self.dlg.textEdit.append("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
             """
             Sjekker etter filer som har samme navn, de filene som ikke har same navn vil bli lagt i en liste og
             brukeren vil se hvilken filer som ikke ligger i sjekkmappen, diroldfiles.
@@ -227,7 +228,7 @@ class NvdbQgisPlugin:
             if not filter_listold:
                 pass
             else:
-                print('Disse filene: ', filter_listold,
+                self.dlg.textEdit.append('Disse filene: ', filter_listold,
                       'finnes ikke i sjekk mappen, disse vil bli fjernet fra sammenligningen.')
                 for i in filter_listold:
                     dirOldFiles.remove(i)
@@ -236,7 +237,7 @@ class NvdbQgisPlugin:
             if not filter_listnew:
                 pass
             else:
-                print('Disse filene: ', filter_listnew,
+                self.dlg.textEdit.append('Disse filene: ', filter_listnew,
                       'finnes ikke i sjekk mappen, disse vil bli fjernet fra sammenligningen.')
 
                 for i in filter_listnew:
@@ -345,8 +346,8 @@ class NvdbQgisPlugin:
             self.dlg.checkBox_nvdbid.setEnabled(False)
             self.dlg.checkBox_objekt.setEnabled(False)
             if self.dlg.lineEdit_fritekst.text().strip() is '':
-                self.errorMessage("Du må angi en kolone!")
-                self.dlg.lineEdit_fritekst.setText("Angi en Kolone!")
+                self.errorMessage("Du må angi en kolonne!")
+                self.dlg.lineEdit_fritekst.setText("Angi en kolonne!")
         else:
             self.dlg.checkBox_nvdbid.setEnabled(True)
             self.dlg.checkBox_objekt.setEnabled(True)
@@ -355,7 +356,7 @@ class NvdbQgisPlugin:
     def comp_checkbox_handler_nvdbid(self):
         """
         Om checkboxen for nvdbid er checket vil den returnere nvdbid til colval.
-        Denne verdien brukes for å sammenligne koloner i csvfiler generert av utskriften til
+        Denne verdien brukes for å sammenligne kolonner i csvfiler generert av utskriften til
         attributt tabellen til lagene i qgis.
         """
         if self.dlg.checkBox_nvdbid.isChecked():
@@ -370,7 +371,7 @@ class NvdbQgisPlugin:
     def comp_checkbox_handler_object(self):
         """
         Om checkboxen for objekt er checked vil den returnere Objekt til colval.
-        Denne verdien brukes for å sammenligne koloner i csvfiler generert av utskrift av mengder.
+        Denne verdien brukes for å sammenligne kolonner i csvfiler generert av utskrift av mengder.
         Disse mengdene blir hentet fra NVDB.
         """
         if self.dlg.checkBox_objekt.isChecked():
@@ -647,7 +648,17 @@ class NvdbQgisPlugin:
             rowNumber = i.row()
         objList = self.dlg.searchTable.item(rowNumber, 1).text()
         objList = objList[1:-1]
-        objList = objList.split(',')
+        objList = objList.split(",")
+        length = len(objList)
+        for i in range(length):
+            if "'" in objList[i]:
+                objList[i] += "," + objList[i + 1]
+                objList.remove(objList[i + 1])
+                break
+        length = len(objList)
+        for i in range(length):
+            if objList[i].isdigit():
+                objList[i] = int(objList[i])
         areaType = self.dlg.searchTable.item(rowNumber, 2).text()
         area = self.dlg.searchTable.item(rowNumber, 3).text()
         road = self.dlg.searchTable.item(rowNumber, 4).text()
@@ -688,6 +699,9 @@ class NvdbQgisPlugin:
         presetPath = os.path.join(relPath, "presets")
         subprocess.Popen(f'explorer "{presetPath}"')
 
+    def setSearch(self):
+        pass
+
     def getStats(self):
         """
         Henter mengdedata til objekter lagret i NVDB.
@@ -711,7 +725,6 @@ class NvdbQgisPlugin:
                 self.errorMessage("Klarte ikke å lage nye mappe")
             else:
                 filename = os.path.join(output_dir + '/' + userin_file_name + '.csv')
-                print(filename)
                 with open(filename, 'w', newline='', encoding='utf8') as fm:
                     writer = csv.writer(fm, delimiter=',')
                     writer.writerow(colnavn._fields)
@@ -793,7 +806,6 @@ class NvdbQgisPlugin:
 
     def stat(self):
         stats = self.getStats()
-        print(stats)
 
     def loadStats(self):
         """
@@ -830,7 +842,6 @@ class NvdbQgisPlugin:
                         areaList.append(area.egenskapverdi('Areal'))
                         continue
                 else:
-                    print("TEST")
                     break
 
         for i in range(len(valueList)):
@@ -890,11 +901,11 @@ class NvdbQgisPlugin:
             try:
                 field = layer.fields().indexFromName(field_name)
                 if field == -1:
-                    print("Atributten {} finnes ikke i lag {}!".format(field_name, layer.name()))
+                    self.dlg.textEdit.append("Atributten {} finnes ikke i lag {}!".format(field_name, layer.name()))
                 else:
                     nameList.append(layer.name())
             except AttributeError as a:
-                print(str(layer.name) + "har ikke atributter")
+                self.dlg.textEdit.append(str(layer.name) + "har ikke atributter")
         for i in range(len(nameList)):
             if nameList[i][-3:] == "_2d" or nameList[i][-3:] == "_3d":
                 nameList[i] = nameList[i][:-3]
