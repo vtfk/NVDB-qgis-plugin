@@ -649,16 +649,6 @@ class NvdbQgisPlugin:
         objList = self.dlg.searchTable.item(rowNumber, 1).text()
         objList = objList[1:-1]
         objList = objList.split(",")
-        length = len(objList)
-        for i in range(length):
-            if "'" in objList[i]:
-                objList[i] += "," + objList[i + 1]
-                objList.remove(objList[i + 1])
-                break
-        length = len(objList)
-        for i in range(length):
-            if objList[i].isdigit():
-                objList[i] = int(objList[i])
         areaType = self.dlg.searchTable.item(rowNumber, 2).text()
         area = self.dlg.searchTable.item(rowNumber, 3).text()
         road = self.dlg.searchTable.item(rowNumber, 4).text()
@@ -700,7 +690,16 @@ class NvdbQgisPlugin:
         subprocess.Popen(f'explorer "{presetPath}"')
 
     def setSearch(self):
-        pass
+        rowNumber = 0
+        for i in self.dlg.searchTable.selectionModel().selectedIndexes():
+            rowNumber = i.row()
+        objList = self.dlg.searchTable.item(rowNumber, 1).text()
+        objList = objList[1:-1]
+        objList = objList.split(",")
+        areaType = self.dlg.searchTable.item(rowNumber, 2).text()
+        area = self.dlg.searchTable.item(rowNumber, 3).text()
+        road = self.dlg.searchTable.item(rowNumber, 4).text()
+        setLastSearch(area, areaType, road)
 
     def getStats(self):
         """
