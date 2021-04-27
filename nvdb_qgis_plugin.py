@@ -805,12 +805,6 @@ class NvdbQgisPlugin:
         valueList, itemList, amountList, lenghtList, areaList, areaTotalList = [], [], [], [], [], []
 
         for i in names:
-            if i == "OpenStreetMap":
-                names.remove(i)
-            else:
-                pass
-
-        for i in names:
             item_id = getID(i)
             item = nvdbFagdata(item_id)
             if data[1] == "kommune":
@@ -891,8 +885,16 @@ class NvdbQgisPlugin:
         """
         project = QgsProject.instance()
         nameList = []
+        field_name = "nvdbid"
         for id, layer in project.mapLayers().items():
-            nameList.append(layer.name())
+            try:
+                field = layer.fields().indexFromName(field_name)
+                if field == -1:
+                    print("Atributten {} finnes ikke i lag {}!".format(field_name, layer.name()))
+                else:
+                    nameList.append(layer.name())
+            except AttributeError as a:
+                print(str(layer.name) + "har ikke atributter")
         for i in range(len(nameList)):
             if nameList[i][-3:] == "_2d" or nameList[i][-3:] == "_3d":
                 nameList[i] = nameList[i][:-3]
@@ -932,6 +934,7 @@ class NvdbQgisPlugin:
             self.first_start = False
         self.dlg.comboBox.clear()
         self.dlg.comboBox.addItems(sortCategories())
+        self.dlg.fylkeBox.clear()
         self.dlg.fylkeBox.addItems(getFylkeNavn())
         self.dlg.openLayers = QgsProject.instance().layerTreeRoot().children()
         self.dlg.listWidget_layers.clear()
