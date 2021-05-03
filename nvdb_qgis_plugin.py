@@ -95,7 +95,7 @@ class NvdbQgisPlugin:
                 action)
 
         self.actions.append(action)
-        # Connecter alle knapper og andre actions
+        # Kobler alle knapper og andre actions
         self.dlg.dirOldButton.clicked.connect(self.select_oldDir)
         self.dlg.dirNewButton.clicked.connect(self.select_newDir)
         self.dlg.dirResultButton.clicked.connect(self.select_dirResult)
@@ -223,7 +223,7 @@ class NvdbQgisPlugin:
                     self.dlg.textEdit.append("Mappen inneholder noen filer som ikke er .csv filer, disse blir ignorert")
             """
             Sjekker etter filer som har samme navn, de filene som ikke har same navn vil bli lagt i en liste og
-            brukeren vil se hvilken filer som ikke ligger i sjekkmappen, diroldfiles.
+            brukeren vil se hvilken filer som ikke matcher mellom de valgte filene.
             """
             filter_listold = [string for string in dirOldFiles if string not in dirNewFiles]
             if not filter_listold:
@@ -309,7 +309,9 @@ class NvdbQgisPlugin:
             except OSError:
                 self.errorMessage("Klarte ikke å lagre ny mappe")
             else:
+                #Leser lagene som er skrevet til QGIS
                 for layer in self.iface.mapCanvas().layers():
+                    #Om dette laget er et vektorlag vil attributt dataen for hvert enkelt lag bli skrevet til en egen fil.
                     if layer.type() == QgsMapLayer.VectorLayer:
 
                         self.dlg.textEdit.append('Skriver: ' + layer.name() + ' til CSV')
@@ -785,6 +787,7 @@ class NvdbQgisPlugin:
                             value = antall[a]
                             arealsum = areallist[start:start + value]
                             start += value
+                            #Sjekker for None verdier, om en verdi er None blir den endret til 0.
                             rnone = [0 if x is None else x for x in arealsum]
                             rnonelist.append(sum(rnone))
                         if rnone is not None:
