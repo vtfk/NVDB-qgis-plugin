@@ -20,3 +20,5 @@ For å kjøre pluginen kreves det at du har installert requirements.txt.
 
 Bachelorprosjekt av Erlend Ellefsen og Robin Ellingsen i sammarbeid med Vestfold og Telemark 
 fylkeskommune(Knut DammenSMM/Anders W.R.BDK) og USN Bø.
+
+Dokumentasjon for prosjektet ligger [her.](https://uisn-my.sharepoint.com/:f:/g/personal/225284_usn_no/EiHgCEZkHMREgkiOwKQhMMYB7r_McsqW8ZmAtSefGRJdUg?e=r3uI3V "Innleveringsmappe")
